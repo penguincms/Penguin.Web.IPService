@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-namespace IPRangeBreakdown.Registrations
+namespace Penguin.Web.Registrations
 {
     internal class CIDRRegistration : IPRegistration
     {

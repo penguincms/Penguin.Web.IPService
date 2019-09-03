@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace IPRangeBreakdown
+namespace Penguin.Web.Objects
 {
     public class IPRange
     {

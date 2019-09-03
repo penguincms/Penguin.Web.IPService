@@ -1,15 +1,14 @@
-﻿using IPRangeBreakdown.Registrations;
+﻿using Penguin.Extensions.String;
+using Penguin.Web.Objects;
+using Penguin.Web.Registrations;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
-using Framework.Shared.Extensions;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace IPRangeBreakdown
+namespace Penguin.Web
 {
     public static class IPService
     {
@@ -122,7 +121,7 @@ namespace IPRangeBreakdown
                         System.Threading.Thread.Sleep((int)(QueryTimeout - (DateTime.Now - LastQuery).TotalMilliseconds));
                     }
 
-                    string Response = Framework.Console.Process.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip);
+                    string Response = Penguin.Console.Process.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip);
 
                     string[] lines = Response.Split('\r').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToArray();
 

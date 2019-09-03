@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace IPRangeBreakdown.Registrations
+namespace Penguin.Web.Registrations
 {
     internal interface IIPRegistration
     {

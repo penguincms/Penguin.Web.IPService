@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Penguin.Console" Version="1.0.0" />
+    <PackageReference Include="Penguin.Extensions.String" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\source\repos\Penguin.Reflection.Serialization.XML\Penguin.Reflection.Serialization.XML.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Whois\whosip.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

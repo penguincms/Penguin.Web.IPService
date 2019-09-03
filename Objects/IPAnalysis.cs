@@ -1,9 +1,9 @@
-﻿using IPRangeBreakdown.Registrations;
+﻿using Penguin.Web.Registrations;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IPRangeBreakdown
+namespace Penguin.Web.Objects
 {
     [Serializable]
     public class IPAnalysis : IIPRegistration
