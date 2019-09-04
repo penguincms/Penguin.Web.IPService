@@ -131,7 +131,6 @@ namespace Penguin.Web.IPServices
                     foreach (string ip in toFind.ToList()) {
                         if (ipa.IsMatch(IPAddress.Parse(ip)))
                         {
-                            toFind.Remove(ip);
                             matchBlocks.Add((ip, block));
                         }
                     }
