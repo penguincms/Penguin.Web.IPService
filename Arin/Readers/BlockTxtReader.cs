@@ -5,49 +5,32 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
     public class BlockTxtReader : BlockReader<Dictionary<string, string>>
     {
         public int ThreadCount { get; set; }
-        float lastProgress { get; set; }
-        public BlockTxtReader(string filePath, int bufferSize = 3000, int threadCount = 0) : base(filePath, bufferSize)
+
+
+        int newLineCount = 0;
+
+        public BlockTxtReader(string filePath, IProgress<float> reportProgress, int bufferSize = 3000) : base(filePath, bufferSize, reportProgress)
         {
-            if (ThreadCount < 1)
-            {
-                threadCount = System.Environment.ProcessorCount;
-            }
+
         }
+      
 
-        public Action<float> ReportProgress { get; set; }
-
-
-        protected override void DeckFiller_DoWork(object sender, DoWorkEventArgs e)
+        public async Task<Dictionary<string, string>> GetNextBlock()
         {
-            int newLineCount = 0;
 
-            string line = null;
-            Dictionary<string, string> thisBlock = new Dictionary<string, string>();
+            Dictionary<string, string> thisBlock = null;
 
-            
-            float streamLength = FileReader.BaseStream.Length;
+            string line;
 
-
-            while (OnDeck.Count < 100 && (line = FileReader.ReadLine()) != null)
+            while ((line = await TextReader.ReadLineAsync()) != null)
             {
-
-                if (ReportProgress != null)
-                {
-                    float thisProgress = (float)(Math.Truncate(FileReader.BaseStream.Position / streamLength * 100.0) / 100.0);
-
-                    if (lastProgress != thisProgress)
-                    {
-                        lastProgress = thisProgress;
-
-                        ReportProgress.Invoke(thisProgress);
-                    }
-                }
 
                 if (string.IsNullOrWhiteSpace(line))
                 {
@@ -57,19 +40,18 @@ namespace Penguin.Web.IPServices.Arin.Readers
                     {
                         if (thisBlock.Count > 0)
                         {
-                            OnDeck.Enqueue(thisBlock);
                             newLineCount = 0;
-                        }
 
-                        thisBlock = new Dictionary<string, string>();
+                            return thisBlock;                           
+                        }
                     }
 
                     continue;
                 } else
                 {
+                    thisBlock = thisBlock ?? new Dictionary<string, string>();
                     newLineCount = 0;
                 }
-
 
 
                 if (line.Contains(":"))
@@ -85,15 +67,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
             }
 
-            if (line is null)
-            {
-                MoreToGo = false;
-            }
-
-            if (thisBlock.Count > 0)
-            {
-                OnDeck.Enqueue(thisBlock);
-            }
+            return null;
         }
     }
 }

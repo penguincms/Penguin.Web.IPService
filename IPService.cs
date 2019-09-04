@@ -94,7 +94,7 @@ namespace Penguin.Web
         private static Object QueryLock { get; set; } = new object();
         public static IPAnalysis QueryIP(IPAddress Ip)
         {
-            IPAnalysis analysis = null;
+            IPAnalysis? analysis = null;
 
             lock (QueryLock)
             {
@@ -112,7 +112,7 @@ namespace Penguin.Web
 
                 if (analysis is null)
                 {
-                    analysis = new IPAnalysis()
+                    IPAnalysis nanalysis = new IPAnalysis()
                     {
                         DiscoveryDate = DateTime.Now
                     };
@@ -134,65 +134,67 @@ namespace Penguin.Web
                         switch (key)
                         {
                             case "whois source":
-                                analysis.WhoisSource = value;
+                                nanalysis.WhoisSource = value;
                                 break;
                             case "ip address":
-                                analysis.IpAddress = value;
+                                nanalysis.IpAddress = value;
                                 break;
                             case "country":
-                                analysis.Country = value;
+                                nanalysis.Country = value;
                                 break;
                             case "network name":
-                                analysis.NetworkName = value;
+                                nanalysis.NetworkName = value;
                                 break;
                             case "owner name":
-                                analysis.OwnerName = value;
+                                nanalysis.OwnerName = value;
                                 break;
                             case "cidr":
-                                analysis.CIDR = value.Split(",").Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                                nanalysis.CIDR = value.Split(",").Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
                                 break;
                             case "from ip":
-                                analysis.FromIp = value;
+                                nanalysis.FromIp = value;
                                 break;
                             case "to ip":
-                                analysis.ToIp = value;
+                                nanalysis.ToIp = value;
                                 break;
                             case "allocated":
-                                analysis.Allocated = value == "Yes";
+                                nanalysis.Allocated = value == "Yes";
                                 break;
                             case "contact name":
-                                analysis.ContactName = value;
+                                nanalysis.ContactName = value;
                                 break;
                             case "address":
-                                analysis.Address = value;
+                                nanalysis.Address = value;
                                 break;
                             case "email":
-                                analysis.Email = value;
+                                nanalysis.Email = value;
                                 break;
                             case "abuse email":
-                                analysis.AbuseEmail = value;
+                                nanalysis.AbuseEmail = value;
                                 break;
                             case "phone":
-                                analysis.Phone = value;
+                                nanalysis.Phone = value;
                                 break;
                             case "fax":
-                                analysis.Fax = value;
+                                nanalysis.Fax = value;
                                 break;
 
                         }
 
                     }
 
+                    analysis = nanalysis;
+
 
                     LastQuery = DateTime.Now;
 
-                    AddAnalysis(analysis);
+                    AddAnalysis(analysis.Value);
 
                     SaveAnalysis();
                 }
             }
 
-            return analysis;
+            return analysis.Value;
         }
         public static bool IsBlacklisted(IPAddress Ip)
         {

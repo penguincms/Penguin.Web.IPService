@@ -6,7 +6,7 @@ using System.Text;
 namespace Penguin.Web.Objects
 {
     [Serializable]
-    public class IPAnalysis : IIPRegistration
+    public struct IPAnalysis : IIPRegistration
     {
         public DateTime DiscoveryDate { get; set; }
         public string IpAddress { get; set; }

@@ -7,14 +7,17 @@ using System.Text;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
-    public abstract class BlockReader<T> : IDisposable where T : class
+    public abstract class BlockReader<T> : IDisposable
     {
-        protected StreamReader FileReader { get; set; }
-        public BlockReader(string filePath, int bufferSize = 128)
-        {
-            OnDeck = new ConcurrentQueue<T>();
+        protected TextReader TextReader { get; set; }
+        protected IProgress<float> ProgressReporter { get; set; }
+        float LastProgress { get; set; }
+        float FileLength { get; set; }
 
-            MoreToGo = true;
+        public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress)
+        {
+
+            ProgressReporter = reportProgress;
 
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -26,52 +29,27 @@ namespace Penguin.Web.IPServices.Arin.Readers
                 throw new ArgumentException($"Reader of type {this.GetType().Name} can not be created with file that does not exist");
             }
 
-            FileReader = new StreamReader(File.OpenRead(filePath), Encoding.UTF8, true, bufferSize);
+            StreamReader fileStream = new StreamReader(File.OpenRead(filePath), Encoding.UTF8, true, bufferSize);
 
+            TextReader = fileStream;
+            LastProgress = fileStream.BaseStream.Length;
         }
 
-        BackgroundWorker DeckFiller { get; set; }
-        protected bool MoreToGo { get; set; }
-
-        protected abstract void DeckFiller_DoWork(object sender, DoWorkEventArgs e);
-
-        public IEnumerable<T> Blocks()
+        public void ReportProgress()
         {
-
-            void CheckWorker()
+            if (ProgressReporter != null)
             {
-                if (DeckFiller is null)
-                {
-                    DeckFiller = new BackgroundWorker();
-                    DeckFiller.DoWork += DeckFiller_DoWork;
-                }
+                float thisProgress = (float)(Math.Truncate((TextReader as StreamReader).BaseStream.Position / FileLength * 100.0));
 
-                if (!DeckFiller.IsBusy)
+                if (LastProgress != thisProgress)
                 {
-                    DeckFiller.RunWorkerAsync();
+                    LastProgress = thisProgress;
+
+                    ProgressReporter.Report(thisProgress);
                 }
             }
-
-            while (MoreToGo || OnDeck.Count > 0)
-            {
-
-                if (OnDeck.Count < 100 && MoreToGo)
-                {
-                    CheckWorker();
-                }
-
-                T thisBlock = null;
-
-                if (OnDeck.TryDequeue(out thisBlock))
-                {
-                    yield return thisBlock;
-                } 
-                
-            }
-
         }
 
-        protected ConcurrentQueue<T> OnDeck { get; set; }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -82,7 +60,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
             {
                 if (disposing)
                 {
-                    FileReader.Dispose();
+                    TextReader.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
