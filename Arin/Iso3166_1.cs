@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Penguin.Web.IPServices.Arin
 {
-    public class Iso3166_1
+    public struct Iso3166_1
     {
         public string Code2 { get; set; }
         public string Code3 { get; set; }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Penguin.Web.IPServices.Arin
 {
-    public class PocLink
+    public struct PocLink
     {
         public string Description { get; set; }
         public string Function { get; set; }

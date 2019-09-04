@@ -11,48 +11,60 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices
 {
     public class ArinXMLService : ArinBaseService
     {
-        
 
-        private void LoadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        public async Task<LoadCompletionArgs> LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress = null)
         {
-            Analysis = (e.Result as LoadCompletionArgs).Analysis;
+            List<ArinBlacklist> BlackList = BlackLists.ToList();
 
-            IsLoaded = true;
+            return await new Task<LoadCompletionArgs>(() => {
 
-            LoadCompleted.Invoke(e.Result as LoadCompletionArgs);
-        }
-        public ArinXMLService(IEnumerable<ArinBlacklist> BlackLists, string NetXmlPath, string OrgXmlPath, Action<string, float> reportProgress = null, Action<LoadCompletionArgs> loadCompleted = null) : base(OrgXmlPath, NetXmlPath, loadCompleted, reportProgress)
-        {
+                NetXmlReader netReader = new NetXmlReader(NetPath);
 
-            Analysis = new System.Collections.Concurrent.ConcurrentBag<IPAnalysis>();
+                PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => BlackList.Select(a => a.Property).Contains(p.Name)).ToArray();
 
-            LoadWorker = new BackgroundWorker();
+                List<Org> matchingOrgs = MatchingOrgs(BlackList, OrgPath, reportProgress);
 
-            LoadWorker.DoWork += this.LoadWorker_DoWork;
-            LoadWorker.RunWorkerCompleted += this.LoadWorker_RunWorkerCompleted;
+                List<Net> matchingNets = MatchingNets(BlackList, matchingOrgs, NetPath, reportProgress);
 
-            LoadWorker.RunWorkerAsync(new WorkerArgs()
-            {
-                BlackList = BlackLists.ToList(),
-                NetPath = NetXmlPath,
-                OrgsPath = OrgXmlPath,
-                ReportProgress = reportProgress
+                LoadCompletionArgs toReturn = new LoadCompletionArgs();
+
+                foreach (Net n in matchingNets)
+                {
+                    foreach (IPAnalysis ip in GetAnalysis(n))
+                    {
+                        toReturn.Analysis.Add(ip);
+                    }
+                }
+
+
+                this.BlackList.Analysis = toReturn.Analysis;
+                this.BlackList.IsLoaded = true;
+
+                return toReturn;
             });
         }
 
-        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips)
+        public ArinXMLService(string NetXmlPath, string OrgXmlPath) : base(OrgXmlPath, NetXmlPath)
+        {
+
+
+        }
+
+        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
+        public IEnumerable<(string OrgName, string IP)> FindOwner(Action<string, float> ReportProgress, params string[] Ips)
         {
             List<string> toFind = Ips.ToList();
 
             NetXmlReader readerX = new NetXmlReader(NetPath);
             readerX.ReportProgress = (f) =>
             {
-                this.ReportProgress.Invoke("Net", f);
+                ReportProgress.Invoke("Net", f);
             };
 
             List<(string Ip, Net Block)> matchBlocks = new List<(string Ip, Net Block)>();
@@ -75,7 +87,7 @@ namespace Penguin.Web.IPServices
             OrgXmlReader readerO = new OrgXmlReader(OrgPath);
             readerO.ReportProgress = (f) =>
             {
-                this.ReportProgress.Invoke("Org", f);
+                ReportProgress.Invoke("Org", f);
             };
 
             foreach (Org block in readerO.Blocks())
@@ -182,7 +194,7 @@ namespace Penguin.Web.IPServices
                 }
             }
         }
-        private static List<Org> MatchingOrgs(List<ArinBlacklist> BlackListEntries, string OrgXmlPath, Action<string, float> ReportProgress)
+        private static List<Org> MatchingOrgs(List<ArinBlacklist> BlackListEntries, string OrgXmlPath, IProgress<(string, float)> ReportProgress)
         {
             OrgXmlReader reader = new OrgXmlReader(OrgXmlPath);
 
@@ -190,13 +202,13 @@ namespace Penguin.Web.IPServices
             {
                 reader.ReportProgress = p =>
                 {
-                    ReportProgress.Invoke("Org", p);
+                    ReportProgress.Report(("Org", p));
                 };
             }
 
             return FindMatches(reader.Blocks(), BlackListEntries).ToList();
         }
-        private static List<Net> MatchingNets(List<ArinBlacklist> BlackListEntries, List<Org> MatchingOrgs, string NetXmlPath, Action<string, float> ReportProgress)
+        private static List<Net> MatchingNets(List<ArinBlacklist> BlackListEntries, List<Org> MatchingOrgs, string NetXmlPath, IProgress<(string, float)> ReportProgress)
         {
             NetXmlReader reader = new NetXmlReader(NetXmlPath);
 
@@ -204,37 +216,13 @@ namespace Penguin.Web.IPServices
             {
                 reader.ReportProgress = p =>
                 {
-                    ReportProgress.Invoke("Net", p);
+                    ReportProgress.Report(("Net", p));
                 };
             }
 
             return FindMatches(reader.Blocks(), BlackListEntries, n => {
                 return MatchingOrgs.Any(o => o.Handle == n.OrgHandle);
             }).ToList();
-        }
-        private void LoadWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            WorkerArgs args = e.Argument as WorkerArgs;
-
-            NetXmlReader netReader = new NetXmlReader(args.NetPath);
-
-            PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => args.BlackList.Select(a => a.Property).Contains(p.Name)).ToArray();
-
-            List<Org> matchingOrgs = MatchingOrgs(args.BlackList, args.OrgsPath, args.ReportProgress);
-
-            List<Net> matchingNets = MatchingNets(args.BlackList, matchingOrgs, args.NetPath, args.ReportProgress);
-
-            LoadCompletionArgs toReturn = new LoadCompletionArgs();
-
-            foreach (Net n in matchingNets)
-            {
-              foreach(IPAnalysis ip in GetAnalysis(n))
-                {
-                    toReturn.Analysis.Add(ip);
-                }
-            }
-
-            e.Result = toReturn;
         }
 
     }

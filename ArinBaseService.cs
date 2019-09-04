@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices
 {
@@ -17,18 +18,12 @@ namespace Penguin.Web.IPServices
     {
         public string OrgPath { get; set; }
         public string NetPath { get; set; }
-        internal ArinBaseService(string orgPath, string netPath, Action<LoadCompletionArgs> loadComplete, Action<string, float> reportProgress)
+        internal ArinBaseService(string orgPath, string netPath)
         {
-            ReportProgress = reportProgress;
-            LoadCompleted = loadComplete;
             OrgPath = orgPath;
             NetPath = netPath;
         }
-        internal Action<string,float> ReportProgress { get; set; }
-        internal Action<LoadCompletionArgs> LoadCompleted { get; set; }
-        protected BackgroundWorker LoadWorker { get; set; }
-        public virtual bool IsLoaded { get; protected set; }
-        protected ConcurrentBag<IPAnalysis> Analysis { get; set; } = new ConcurrentBag<IPAnalysis>();
+        public Blacklist BlackList { get; set; } = new Blacklist();
 
     }
 }
