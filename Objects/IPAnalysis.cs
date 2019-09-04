@@ -13,7 +13,7 @@ namespace Penguin.Web.Objects
         public string Country { get; set; }
         public string NetworkName { get; set; }
         public string OwnerName { get; set; }
-        public string[] CIDR { get; set; }
+        public string[] CIDR { get; set; } 
         public string FromIp { get; set; }
         public string ToIp { get; set; }
         public bool Allocated { get; set; }
@@ -24,20 +24,24 @@ namespace Penguin.Web.Objects
         public string Phone { get; set; }
         public string Fax { get; set; }
         public string WhoisSource { get; set; }
+        public string OrgID { get; set; }
 
         [NonSerialized]
         private List<IIPRegistration> Registrations;
-        public bool IsMatch(string IPAddress)
+        public bool IsMatch(System.Net.IPAddress IPAddress)
         {
             if(Registrations is null)
             {
                 Registrations = new List<IIPRegistration>();
 
-                foreach(string cidr in CIDR)
+                if (CIDR != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(cidr))
+                    foreach (string cidr in CIDR)
                     {
-                        Registrations.Add(new CIDRRegistration(cidr));
+                        if (!string.IsNullOrWhiteSpace(cidr))
+                        {
+                            Registrations.Add(new CIDRRegistration(cidr));
+                        }
                     }
                 }
 

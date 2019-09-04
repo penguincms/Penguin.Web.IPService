@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 
 namespace Penguin.Web.Registrations
@@ -11,9 +12,9 @@ namespace Penguin.Web.Registrations
             Source = IP;
         }
 
-        public override bool IsMatch(string IPAddress)
+        public override bool IsMatch(IPAddress IPAddress)
         {
-            return Source == IPAddress;
+            return ParseIp(Source).Equals(IPAddress);
         }
     }
 

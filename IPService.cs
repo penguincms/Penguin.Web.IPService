@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -91,7 +92,7 @@ namespace Penguin.Web
         public const double QueryTimeout = 2000;
         private static DateTime LastQuery { get; set; }
         private static Object QueryLock { get; set; } = new object();
-        public static IPAnalysis QueryIP(string Ip)
+        public static IPAnalysis QueryIP(IPAddress Ip)
         {
             IPAnalysis analysis = null;
 
@@ -121,7 +122,7 @@ namespace Penguin.Web
                         System.Threading.Thread.Sleep((int)(QueryTimeout - (DateTime.Now - LastQuery).TotalMilliseconds));
                     }
 
-                    string Response = Penguin.Console.Process.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip);
+                    string Response = Penguin.Console.Process.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip.ToString());
 
                     string[] lines = Response.Split('\r').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToArray();
 
@@ -193,7 +194,7 @@ namespace Penguin.Web
 
             return analysis;
         }
-        public static bool IsBlacklisted(string Ip)
+        public static bool IsBlacklisted(IPAddress Ip)
         {
 
             if (IPRegistrations != null)

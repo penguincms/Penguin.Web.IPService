@@ -1,83 +1,77 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
-using Penguin.Reflection.Serialization.XML;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
-    public class BlockReader<T> : IDisposable
+    public abstract class BlockReader<T> : IDisposable where T : class
     {
-        string BlockName { get; set; }
-        string BlockStart { get; set; }
-        string BlockEnd { get; set; }
-
-        XMLSerializer Serializer { get; set; }
-        StreamReader FileReader { get; set; }
-
-        public BlockReader(string blockName, string filePath, int bufferSize = 128)
+        protected StreamReader FileReader { get; set; }
+        public BlockReader(string filePath, int bufferSize = 128)
         {
-            BlockName = blockName;
-            BlockStart = $"<{blockName}>";
-            BlockEnd = $"</{blockName}>";
+            OnDeck = new ConcurrentQueue<T>();
 
-            Serializer = new XMLSerializer(new XMLDeserializerOptions()
+            MoreToGo = true;
+
+            if (string.IsNullOrWhiteSpace(filePath))
             {
-                CaseSensitive = false,
-                AttributesAsProperties = true,
-                StartNode = blockName
-            });
+                throw new ArgumentException($"Reader of type {this.GetType().Name} was passed empty file path");
+            }
+
+            if (!File.Exists(filePath))
+            {
+                throw new ArgumentException($"Reader of type {this.GetType().Name} can not be created with file that does not exist");
+            }
 
             FileReader = new StreamReader(File.OpenRead(filePath), Encoding.UTF8, true, bufferSize);
+
         }
 
-        public Action<float> ReportProgress { get; set; }
+        BackgroundWorker DeckFiller { get; set; }
+        protected bool MoreToGo { get; set; }
+
+        protected abstract void DeckFiller_DoWork(object sender, DoWorkEventArgs e);
 
         public IEnumerable<T> Blocks()
         {
-            String line;
-            StringBuilder blockContents = new StringBuilder();
-            bool add = false;
-            float lastProgress = 0;
-            float streamLength = FileReader.BaseStream.Length;
 
-            while ((line = FileReader.ReadLine()) != null) {             
-            
-                if(ReportProgress != null)
+            void CheckWorker()
+            {
+                if (DeckFiller is null)
                 {
-                    float thisProgress = (float)(Math.Truncate(FileReader.BaseStream.Position / streamLength * 100.0) / 100.0);
-
-                    if(lastProgress != thisProgress)
-                    {
-                        lastProgress = thisProgress;
-
-                        ReportProgress.Invoke(thisProgress);
-                    }
+                    DeckFiller = new BackgroundWorker();
+                    DeckFiller.DoWork += DeckFiller_DoWork;
                 }
 
-                if(line.Contains(BlockStart))
+                if (!DeckFiller.IsBusy)
                 {
-                    add = true;
-                }
-
-                if(add)
-                {
-                    blockContents.Append(line);
-                }
-
-                if(line.Contains(BlockEnd))
-                {
-
-                    T block = Serializer.DeserializeObject<T>(blockContents.ToString());
-
-                    blockContents.Clear();
-
-                    add = false;
-
-                    yield return block;
+                    DeckFiller.RunWorkerAsync();
                 }
             }
+
+            while (MoreToGo || OnDeck.Count > 0)
+            {
+
+                if (OnDeck.Count < 100 && MoreToGo)
+                {
+                    CheckWorker();
+                }
+
+                T thisBlock = null;
+
+                if (OnDeck.TryDequeue(out thisBlock))
+                {
+                    yield return thisBlock;
+                } 
+                
+            }
+
         }
+
+        protected ConcurrentQueue<T> OnDeck { get; set; }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -88,7 +82,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    FileReader.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -106,14 +100,15 @@ namespace Penguin.Web.IPServices.Arin.Readers
         // }
 
         // This code added to correctly implement the disposable pattern.
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-        #endregion
 
+
+        #endregion
     }
 }

@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
-    class OrgReader : BlockReader<Org>
+    class OrgXmlReader : BlockXmlReader<Org>
     {
-        public OrgReader(string filePath, int bufferSize = 2000) : base("org", filePath, bufferSize)
+        public OrgXmlReader(string filePath, int bufferSize = 10000) : base("org", filePath, bufferSize)
         {
         }
     }

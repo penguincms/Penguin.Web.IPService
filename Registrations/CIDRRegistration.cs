@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Numerics;
 using System.Text;
 
 namespace Penguin.Web.Registrations
@@ -9,7 +10,7 @@ namespace Penguin.Web.Registrations
     {
         IPAddress CidrAddress { get; set; }
 
-        int CidrAddressBytes { get; set; }
+        BigInteger CidrAddressBytes { get; set; }
 
         int CidrMaskBytes { get; set; }
 
@@ -24,7 +25,7 @@ namespace Penguin.Web.Registrations
 
             string[] parts = CIDR.Split('/');
 
-            CidrAddress = IPAddress.Parse(parts[0]);
+            CidrAddress = ParseIp(parts[0]);
 
 
             if (parts.Length != 2)
@@ -42,14 +43,14 @@ namespace Penguin.Web.Registrations
                 throw new ArgumentOutOfRangeException($"Netmask bit count value of {netmaskBitCount} is invalid, must be in range 0-32");
             }
 
-            CidrAddressBytes = BitConverter.ToInt32(CidrAddress.GetAddressBytes(), 0);
+            CidrAddressBytes = IpToInt(CidrAddress);
 
             CidrMaskBytes = IPAddress.HostToNetworkOrder(-1 << (32 - netmaskBitCount)); 
         }
 
-        public override bool IsMatch(string IPAddress)
+        public override bool IsMatch(IPAddress IPAddress)
         {
-            int ipAddressBytes = BitConverter.ToInt32(System.Net.IPAddress.Parse(IPAddress).GetAddressBytes(), 0);
+            BigInteger ipAddressBytes = IpToInt(IPAddress);
             
             return (ipAddressBytes & CidrMaskBytes) == (CidrAddressBytes & CidrMaskBytes);
         }
