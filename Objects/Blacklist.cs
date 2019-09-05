@@ -8,7 +8,7 @@ namespace Penguin.Web.IPServices.Objects
 {
     public class Blacklist
     {
-        public ConcurrentBag<IPAnalysis> Analysis { get; set; }
+        public ConcurrentBag<IPAnalysis> Analysis { get; set; } = new ConcurrentBag<IPAnalysis>();
         public bool IsLoaded { get; set; }
     }
 }

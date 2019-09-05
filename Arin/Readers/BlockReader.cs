@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
@@ -13,8 +14,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
         protected IProgress<float> ProgressReporter { get; set; }
         float LastProgress { get; set; }
         float FileLength { get; set; }
-
-        public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress)
+        public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress = null)
         {
 
             ProgressReporter = reportProgress;
@@ -32,7 +32,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
             StreamReader fileStream = new StreamReader(File.OpenRead(filePath), Encoding.UTF8, true, bufferSize);
 
             TextReader = fileStream;
-            LastProgress = fileStream.BaseStream.Length;
+            FileLength = fileStream.BaseStream.Length;
         }
 
         public void ReportProgress()

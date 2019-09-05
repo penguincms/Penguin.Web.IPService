@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Penguin.Web.IPServices.Arin
 {
-    struct Org
+    public class Org
     {
         public string Ref { get; set; }
         public string City { get; set; }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices.Arin.Readers
@@ -13,61 +14,90 @@ namespace Penguin.Web.IPServices.Arin.Readers
     {
         public int ThreadCount { get; set; }
 
-
         int newLineCount = 0;
 
         public BlockTxtReader(string filePath, IProgress<float> reportProgress, int bufferSize = 3000) : base(filePath, bufferSize, reportProgress)
         {
 
         }
-      
 
-        public async Task<Dictionary<string, string>> GetNextBlock()
+
+        private List<string> ReadNextText()
         {
-
-            Dictionary<string, string> thisBlock = null;
+            List<string> Lines = new List<string>(20);
 
             string line;
 
-            while ((line = await TextReader.ReadLineAsync()) != null)
+            lock (lockObject)
             {
-
-                if (string.IsNullOrWhiteSpace(line))
+                while ((line = TextReader.ReadLine()) != null)
                 {
-                    newLineCount++;
 
-                    if (newLineCount == 3)
+                    if (string.IsNullOrWhiteSpace(line))
                     {
-                        if (thisBlock.Count > 0)
+                        newLineCount++;
+
+                        if (newLineCount == 3)
                         {
-                            newLineCount = 0;
-
-                            return thisBlock;                           
+                            if (Lines.Count > 0)
+                            {
+                                ReportProgress();
+                                return Lines;
+                            }
                         }
+
+                        continue;
                     }
-
-                    continue;
-                } else
-                {
-                    thisBlock = thisBlock ?? new Dictionary<string, string>();
-                    newLineCount = 0;
-                }
-
-
-                if (line.Contains(":"))
-                {
-                    string name = line.To(":");
-                    string val = line.From(":").Trim();
-
-                    if (!thisBlock.ContainsKey(name))
+                    else
                     {
-                        thisBlock.Add(name, val);
+                        newLineCount = 0;
                     }
-                }
 
+                    Lines.Add(line);
+                }
             }
 
             return null;
+        }
+
+        private Dictionary<string, string> DeserializeNextBlock()
+        {
+            List<string> Lines = ReadNextText();
+
+            if(Lines is null)
+            {
+                return null;
+            }
+
+            Dictionary<string, string> thisBlock = new Dictionary<string, string>(15);
+
+            foreach (string line in Lines)
+            {
+                int i = line.IndexOf(':');
+                if (i != -1)
+                {
+                    string name = line.Substring(0, i);
+
+                    if (!thisBlock.ContainsKey(name))
+                    {
+                        thisBlock.Add(name, line.Substring(16));
+                    }
+                }
+            }
+
+            return thisBlock;
+
+        }
+
+        object lockObject = new object();
+        public IEnumerable<Dictionary<string, string>> Blocks()
+        {
+            Dictionary<string, string> block;
+            while ((block = DeserializeNextBlock()) != null)
+            {
+                ReportProgress();
+                yield return block;
+            }
         }
     }
 }

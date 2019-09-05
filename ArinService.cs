@@ -34,6 +34,8 @@ namespace Penguin.Web.IPServices
         {
             Task[] loads = new Task[2];
 
+            this.BlackList = new Blacklist();
+
             loads[0] = TxtService.LoadBlacklist(BlackLists, reportProgress).ContinueWith(t =>
             {
                 foreach(IPAnalysis ip in t.Result.Analysis)
@@ -49,19 +51,17 @@ namespace Penguin.Web.IPServices
                 }
             });
 
-            await Task.WhenAll();
-
-            
+            await Task.WhenAll(loads);            
         }
 
-
-        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips)
+        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => FindOwner(null, Ips);
+        public IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips)
         {
-            foreach((string OrgName, string Ip) in TxtService.FindOwner(Ips))
+            foreach((string OrgName, string Ip) in TxtService.FindOwner(ReportProgress, Ips))
             {
                 yield return (OrgName, Ip);
             }
-            foreach ((string OrgName, string Ip) in XmlService.FindOwner(Ips))
+            foreach ((string OrgName, string Ip) in XmlService.FindOwner(ReportProgress, Ips))
             {
                 yield return (OrgName, Ip);
             }

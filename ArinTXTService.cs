@@ -4,6 +4,7 @@ using Penguin.Web.IPServices.Extensions;
 using Penguin.Web.IPServices.Objects;
 using Penguin.Web.Objects;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -29,11 +30,17 @@ namespace Penguin.Web.IPServices
         {
             List<ArinBlacklist> BlackList = BlackLists.ToList();
 
-            return await new Task<LoadCompletionArgs>(() =>
+            return await Task.Run(() =>
             {
-                List<Dictionary<string, string>> matchingOrgs = MatchingOrgs(BlackList, this.OrgPath, reportProgress);
+                List<Dictionary<string, string>> matchingOrgs = MatchingOrgs(BlackList, this.OrgPath, new Progress<(string, float)>((t) => {
 
-                List<Dictionary<string, string>> matchingNets = MatchingNets(BlackList, matchingOrgs, this.NetPath, reportProgress);
+                    reportProgress.Report(("TXT: " + t.Item1, t.Item2));
+                }));
+
+                List<Dictionary<string, string>> matchingNets = MatchingNets(BlackList, matchingOrgs, this.NetPath, new Progress<(string, float)>((t) => {
+
+                    reportProgress.Report(("TXT: " + t.Item1, t.Item2));
+                }));
 
                 LoadCompletionArgs toReturn = new LoadCompletionArgs();
 
@@ -53,60 +60,60 @@ namespace Penguin.Web.IPServices
 
 
 
-        private static IEnumerable<Dictionary<string, string>> FindMatches(Func<Task<Dictionary<string, string>>> NextBlock, List<ArinBlacklist> BlackListEntries, Func<Dictionary<string, string>, bool> AdditionalCriteria = null)
+        private static IEnumerable<Dictionary<string, string>> FindMatches(IEnumerable<Dictionary<string,string>> NextBlock, List<ArinBlacklist> BlackListEntries, Func<Dictionary<string, string>, bool> AdditionalCriteria = null)
         {
+            ConcurrentBag<Dictionary<string, string>> toReturn = new ConcurrentBag<Dictionary<string, string>>();
 
-            foreach (Dictionary<string, string> thisBlock in NextBlock.YieldNext())
+            Parallel.ForEach(NextBlock, block =>
             {
 
-                if (AdditionalCriteria?.Invoke(thisBlock) ?? false)
+                if (AdditionalCriteria?.Invoke(block) ?? false)
                 {
-                    yield return thisBlock;
+                    toReturn.Add(block);
 
                 }
                 else
                 {
                     foreach (ArinBlacklist thisBlacklistEntry in BlackListEntries)
                     {
-                        if (thisBlock.ContainsKey(thisBlacklistEntry.Property))
+                        if (block.TryGetValue(thisBlacklistEntry.Property, out string netVal))
                         {
-                            string netVal = thisBlock[thisBlacklistEntry.Property];
-
                             if (string.IsNullOrWhiteSpace(netVal))
                             {
                                 continue;
                             }
 
-                            if (thisBlacklistEntry.MatchMethod == MatchMethod.Regex)
+                            switch (thisBlacklistEntry.MatchMethod)
                             {
-                                if (Regex.IsMatch(netVal, thisBlacklistEntry.Value))
-                                {
-                                    yield return thisBlock;
-                                }
-                            }
-                            else if (thisBlacklistEntry.MatchMethod == MatchMethod.Contains)
-                            {
-                                if (netVal.Contains(thisBlacklistEntry.Value))
-                                {
-                                    yield return thisBlock;
-                                }
-                            }
-                            else if (thisBlacklistEntry.MatchMethod == MatchMethod.Exact)
-                            {
-                                if (string.Equals(netVal, thisBlacklistEntry.Value))
-                                {
-                                    yield return thisBlock;
-                                }
-                            }
-                            else
-                            {
-                                throw new NotImplementedException($"{nameof(MatchMethod)} value {thisBlacklistEntry.MatchMethod.ToString()} is not implemented");
+                                case MatchMethod.Regex:
+                                    if (Regex.IsMatch(netVal, thisBlacklistEntry.Value))
+                                    {
+                                        toReturn.Add(block);
+                                    }
+                                    break;
+                                case MatchMethod.Contains:
+                                    if (netVal.Contains(thisBlacklistEntry.Value))
+                                    {
+                                        toReturn.Add(block);
+                                    }
+                                    break;
+                                case MatchMethod.Exact:
+                                    if (string.Equals(netVal, thisBlacklistEntry.Value))
+                                    {
+                                        toReturn.Add(block);
+                                    }
+                                    break;
+                                default:
+                                    throw new NotImplementedException($"{nameof(MatchMethod)} value {thisBlacklistEntry.MatchMethod.ToString()} is not implemented");
+
                             }
 
                         }
                     }
                 }
-            }
+            });
+
+            return toReturn;
         }
 
         private static List<Dictionary<string, string>> MatchingOrgs(List<ArinBlacklist> BlackListEntries, string OrgTxtPath, IProgress<(string, float)> ReportProgress)
@@ -118,7 +125,7 @@ namespace Penguin.Web.IPServices
                 })
             );
 
-            return FindMatches(reader.GetNextBlock, BlackListEntries).ToList();
+            return FindMatches(reader.Blocks(), BlackListEntries).ToList();
         }
 
         public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
@@ -132,10 +139,10 @@ namespace Penguin.Web.IPServices
             }));
 
 
-            List<(string Ip, Dictionary<string, string> Block)> matchBlocks = new List<(string Ip, Dictionary<string, string> Block)>();
+            ConcurrentBag<(string Ip, Dictionary<string, string> Block)> matchBlocks = new ConcurrentBag<(string Ip, Dictionary<string, string> Block)>();
 
 
-            TaskExtensions.WhileNext(reader.GetNextBlock, (block) =>
+            Parallel.ForEach(reader.Blocks(), (block) =>
             {
                 foreach (IPAnalysis ipa in GetAnalysis(block))
                 {
@@ -154,18 +161,20 @@ namespace Penguin.Web.IPServices
                 ReportProgress.Report(("TXT: ORG", f));
             }));
 
-
-            foreach (Dictionary<string, string> block in new Func<Task<Dictionary<string, string>>>(reader.GetNextBlock).YieldNext())
+            ConcurrentBag<(string OrgName, string IP)> toReturn = new ConcurrentBag<(string OrgName, string IP)>();
+            Parallel.ForEach(reader.Blocks(), (block) =>
             {
                 foreach ((string Ip, Dictionary<string, string> mblock) in matchBlocks)
                 {
                     if (block["OrgID"] == mblock["OrgID"])
                     {
-                        yield return (Ip, block["OrgName"]);
+                        toReturn.Add((Ip, block["OrgName"]));
 
                     }
                 }
-            }
+            });
+
+            return toReturn;
         }
 
         private static List<Dictionary<string, string>> MatchingNets(List<ArinBlacklist> BlackListEntries, List<Dictionary<string, string>> MatchingOrgs, string NetXmlPath, IProgress<(string, float)> ReportProgress)
@@ -176,21 +185,29 @@ namespace Penguin.Web.IPServices
                     ReportProgress.Report(("Net", f));
                 }));
 
-
-            return FindMatches(reader.GetNextBlock, BlackListEntries, n =>
+            HashSet<string> orgMatch = new HashSet<string>();
+            
+            foreach(string name in MatchingOrgs.Select(m => m["OrgID"]))
             {
-                return MatchingOrgs.Any(m => m["OrgID"] == n["OrgID"]);
+                orgMatch.Add(name);
+            }
+
+            return FindMatches(reader.Blocks(), BlackListEntries, n =>
+            {
+                return orgMatch.Contains(n["OrgID"]);
             }).ToList();
         }
 
         private List<IPAnalysis> GetAnalysis(Dictionary<string, string> block)
         {
             string Range = block["NetRange"];
+            int i = Range.IndexOf('-');
+
             return new List<IPAnalysis>() { new IPAnalysis()
             {
-                FromIp = Range.Split('-')[0].Trim(),
-                ToIp = Range.Split('-')[1].Trim(),
-                OwnerName = block.ContainsKey("OrgName") ? block["OrgName"] : block["OrgID"],
+                FromIp = Range.Substring(0, i).Trim(),
+                ToIp = Range.Substring(i + 1).Trim(),
+                OwnerName = block.TryGetValue("OrgName", out string s) ? s : block["OrgID"],
                 OrgID = block["OrgID"]
             } };
 
