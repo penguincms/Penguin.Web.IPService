@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,6 +31,8 @@ namespace Penguin.Web.IPServices
         public BlacklistStatus CheckIP(string address) => CheckIP(IPRegistration.ParseIp(address));
         public BlacklistStatus CheckIP(IPAddress address)
         {
+            BigInteger toCheck = IPRegistration.IpToInt(address);
+
             BlacklistStatus toReturn = new BlacklistStatus();
 
             if (!(BlackList?.IsLoaded ?? false))
@@ -42,7 +45,7 @@ namespace Penguin.Web.IPServices
 
                 foreach (IPAnalysis analysis in this.BlackList.Analysis)
                 {
-                    if (analysis.IsMatch(address))
+                    if (analysis.IsMatch(toCheck))
                     {
                         toReturn.Matches.Add(analysis);
                         toReturn.State = BlacklistState.Fail;
