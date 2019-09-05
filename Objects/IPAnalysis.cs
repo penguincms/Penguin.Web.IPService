@@ -1,6 +1,7 @@
 ﻿using Penguin.Web.Registrations;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 
 namespace Penguin.Web.Objects
@@ -28,7 +29,9 @@ namespace Penguin.Web.Objects
 
         [NonSerialized]
         private List<IIPRegistration> Registrations;
-        public bool IsMatch(System.Net.IPAddress IPAddress)
+
+        public bool IsMatch(System.Net.IPAddress IPAddress) => IsMatch(IPRegistration.IpToInt(IPAddress));
+        public bool IsMatch(BigInteger IPAddress)
         {
             if(Registrations is null)
             {
@@ -59,5 +62,5 @@ namespace Penguin.Web.Objects
             return false;
         }
     }
-    }
+}
 

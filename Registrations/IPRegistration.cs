@@ -10,9 +10,9 @@ namespace Penguin.Web.Registrations
     {
         public string Source { get; set; }
 
-        public abstract bool IsMatch(IPAddress IPAddress);
+        public abstract bool IsMatch(BigInteger IPAddress);
 
-        public string CleanIP(string Ip)
+        public static string CleanIP(string Ip)
         {
             string start = Ip.Trim('0');
             while (start.Contains(".0"))
@@ -47,11 +47,14 @@ namespace Penguin.Web.Registrations
             return start;
         }
 
-        public IPAddress ParseIp(string Ip)
+        public static IPAddress ParseIp(string Ip)
         {
             return IPAddress.Parse(CleanIP(Ip));
         }
-        protected BigInteger IpToInt(IPAddress address)
+
+        public static BigInteger IpToInt(string address) => IpToInt(ParseIp(address));
+        
+            public static BigInteger IpToInt(IPAddress address)
         {
             byte[] AddressBytes = address.GetAddressBytes();
 

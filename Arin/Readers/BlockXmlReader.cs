@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,16 +38,23 @@ namespace Penguin.Web.IPServices.Arin.Readers
             T block = null;
             lock (lockObject)
             {
+                if(StreamEnd)
+                {
+                    return null;
+                };
+
                 block = Serializer.DeserializeObject<T>(TextReader);
                 ReportProgress();
             }
             return block;
         }
+        //int i = 0;
         public IEnumerable<T> Blocks()
         {
             T block = null;
             while((block = GetNextBlock()) != null)
             {
+                //Debug.WriteLine(i++);
                 yield return block;
             }
         }

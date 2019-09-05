@@ -1,19 +1,16 @@
 ﻿using Penguin.Web.IPServices.Arin;
 using Penguin.Web.IPServices.Arin.Readers;
-using Penguin.Web.IPServices.Extensions;
 using Penguin.Web.IPServices.Objects;
 using Penguin.Web.Objects;
+using Penguin.Web.Registrations;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Reflection;
-using System.Text;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using TaskExtensions = Penguin.Web.IPServices.Extensions.TaskExtensions;
 
 namespace Penguin.Web.IPServices
 {
@@ -54,8 +51,12 @@ namespace Penguin.Web.IPServices
                     }
                 }
 
+                this.BlackList.IsLoaded = true;
+
                 return toReturn;
             });
+
+            
         }
 
 
@@ -76,38 +77,15 @@ namespace Penguin.Web.IPServices
                 {
                     foreach (ArinBlacklist thisBlacklistEntry in BlackListEntries)
                     {
-                        if (block.TryGetValue(thisBlacklistEntry.Property, out string netVal))
+                        foreach (string property in thisBlacklistEntry.Properties)
                         {
-                            if (string.IsNullOrWhiteSpace(netVal))
+                            if (block.TryGetValue(property, out string netVal))
                             {
-                                continue;
+                                if(CheckProperty(netVal, thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
+                                {
+                                    toReturn.Add(block);
+                                }
                             }
-
-                            switch (thisBlacklistEntry.MatchMethod)
-                            {
-                                case MatchMethod.Regex:
-                                    if (Regex.IsMatch(netVal, thisBlacklistEntry.Value))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                    break;
-                                case MatchMethod.Contains:
-                                    if (netVal.Contains(thisBlacklistEntry.Value))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                    break;
-                                case MatchMethod.Exact:
-                                    if (string.Equals(netVal, thisBlacklistEntry.Value))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                    break;
-                                default:
-                                    throw new NotImplementedException($"{nameof(MatchMethod)} value {thisBlacklistEntry.MatchMethod.ToString()} is not implemented");
-
-                            }
-
                         }
                     }
                 }
@@ -131,7 +109,19 @@ namespace Penguin.Web.IPServices
         public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
         public IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips)
         {
-            List<string> toFind = Ips.ToList();
+            HashSet<BigInteger> toFind = new HashSet<BigInteger>();
+            Dictionary<BigInteger, string> Mapping = new Dictionary<BigInteger, string>();
+
+            foreach (string ip in Ips)
+            {
+                BigInteger val = IPRegistration.IpToInt(ip);
+
+                if (!Mapping.ContainsKey(val))
+                {
+                    toFind.Add(val);
+                    Mapping.Add(val, ip);
+                }
+            }
 
             BlockTxtReader reader = new BlockTxtReader(NetPath, new Progress<float>((f) =>
             {
@@ -139,22 +129,40 @@ namespace Penguin.Web.IPServices
             }));
 
 
-            ConcurrentBag<(string Ip, Dictionary<string, string> Block)> matchBlocks = new ConcurrentBag<(string Ip, Dictionary<string, string> Block)>();
+            ConcurrentBag<FindOwnerContainer> matchBlocks = new ConcurrentBag<FindOwnerContainer>();
 
 
             Parallel.ForEach(reader.Blocks(), (block) =>
             {
                 foreach (IPAnalysis ipa in GetAnalysis(block))
                 {
-                    foreach (string ip in toFind.ToList())
+                    foreach (BigInteger ip in toFind)
                     {
-                        if (ipa.IsMatch(IPAddress.Parse(ip)))
+                        if (ipa.IsMatch(ip))
                         {
-                            matchBlocks.Add((ip, block));
+                            matchBlocks.Add(new FindOwnerContainer(Mapping[ip], block));
                         }
                     }
                 }
             });
+
+            Dictionary<string, List<FindOwnerContainer>> matchLookup = new Dictionary<string, List<FindOwnerContainer>>();
+
+            foreach(FindOwnerContainer lookup in matchBlocks)
+            {
+                string org = lookup.Block["OrgID"];
+                List<FindOwnerContainer> collection;
+                if(matchLookup.TryGetValue(org, out collection))
+                {
+                    collection.Add(lookup);
+                } else
+                {
+                    matchLookup.Add(org, new List<FindOwnerContainer>()
+                    {
+                        lookup
+                    }) ;
+                }
+            }
 
             reader = new BlockTxtReader(OrgPath, new Progress<float>((f) =>
             {
@@ -164,17 +172,28 @@ namespace Penguin.Web.IPServices
             ConcurrentBag<(string OrgName, string IP)> toReturn = new ConcurrentBag<(string OrgName, string IP)>();
             Parallel.ForEach(reader.Blocks(), (block) =>
             {
-                foreach ((string Ip, Dictionary<string, string> mblock) in matchBlocks)
+                if (matchLookup.TryGetValue(block["OrgID"], out List<FindOwnerContainer> collection))
                 {
-                    if (block["OrgID"] == mblock["OrgID"])
+                    foreach (FindOwnerContainer container in collection)
                     {
-                        toReturn.Add((Ip, block["OrgName"]));
-
+                        toReturn.Add((container.IP, block["OrgName"]));
                     }
                 }
             });
 
             return toReturn;
+        }
+
+        struct FindOwnerContainer
+        {
+            public string IP { get; set; }
+            public Dictionary<string, string> Block { get; set; }
+
+            public FindOwnerContainer(string ip, Dictionary<string, string> block)
+            {
+                IP = ip;
+                Block = block;
+            }
         }
 
         private static List<Dictionary<string, string>> MatchingNets(List<ArinBlacklist> BlackListEntries, List<Dictionary<string, string>> MatchingOrgs, string NetXmlPath, IProgress<(string, float)> ReportProgress)
