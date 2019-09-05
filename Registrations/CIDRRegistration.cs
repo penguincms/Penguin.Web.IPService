@@ -48,11 +48,9 @@ namespace Penguin.Web.Registrations
             CidrMaskBytes = IPAddress.HostToNetworkOrder(-1 << (32 - netmaskBitCount)); 
         }
 
-        public override bool IsMatch(IPAddress IPAddress)
-        {
-            BigInteger ipAddressBytes = IpToInt(IPAddress);
-            
-            return (ipAddressBytes & CidrMaskBytes) == (CidrAddressBytes & CidrMaskBytes);
+        public override bool IsMatch(BigInteger IPAddress)
+        {        
+            return (IPAddress & CidrMaskBytes) == (CidrAddressBytes & CidrMaskBytes);
         }
     }
 }

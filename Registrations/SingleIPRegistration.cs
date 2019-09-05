@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Numerics;
 using System.Text;
 
 namespace Penguin.Web.Registrations
@@ -12,9 +13,9 @@ namespace Penguin.Web.Registrations
             Source = IP;
         }
 
-        public override bool IsMatch(IPAddress IPAddress)
+        public override bool IsMatch(BigInteger IPAddress)
         {
-            return ParseIp(Source).Equals(IPAddress);
+            return IpToInt(ParseIp(Source)).Equals(IPAddress);
         }
     }
 

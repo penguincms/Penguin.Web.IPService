@@ -1,19 +1,17 @@
 ﻿using Penguin.Web.IPServices.Arin;
 using Penguin.Web.IPServices.Arin.Readers;
-using Penguin.Web.IPServices.Extensions;
 using Penguin.Web.IPServices.Objects;
 using Penguin.Web.Objects;
+using Penguin.Web.Registrations;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using TaskExtensions = Penguin.Web.IPServices.Extensions.TaskExtensions;
 
 namespace Penguin.Web.IPServices
 {
@@ -66,31 +64,41 @@ namespace Penguin.Web.IPServices
         public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
         public IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips)
         {
-            List<string> toFind = Ips.ToList();
+            HashSet<BigInteger> toFind = new HashSet<BigInteger>();
+            Dictionary<BigInteger, string> Mapping = new Dictionary<BigInteger, string>();
+
+            foreach (string ip in Ips.Distinct())
+            {
+                BigInteger val = IPRegistration.IpToInt(ip);
+                if (!Mapping.ContainsKey(val))
+                {
+                    toFind.Add(val);
+                    Mapping.Add(val, ip);
+                }
+            }
 
             NetXmlReader readerX = new NetXmlReader(NetPath, new Progress<float>((f) =>
             {
-                ReportProgress.Report(("TXT: ORG", f));
+                ReportProgress.Report(("XML: NET", f));
             }));
 
 
-            ConcurrentBag<(string Ip, Net Block)> matchBlocks = new ConcurrentBag<(string Ip, Net Block)>();
+            ConcurrentBag<FindOwnerContainer> matchBlocks = new ConcurrentBag<FindOwnerContainer>();
 
-            Parallel.ForEach<Net>(readerX.Blocks(), 
+            Parallel.ForEach<Net>(readerX.Blocks(),
             block =>
             {
                 foreach (IPAnalysis ipa in GetAnalysis(block))
                 {
-                    foreach (string ip in toFind.ToList())
+                    foreach (BigInteger ip in toFind)
                     {
-                        if (ipa.IsMatch(IPAddress.Parse(ip)))
+                        if (ipa.IsMatch(ip))
                         {
-                            matchBlocks.Add((ip, block));
+                            matchBlocks.Add(new FindOwnerContainer(Mapping[ip], block));
                         }
                     }
                 }
             });
-
 
 
             OrgXmlReader readerO = new OrgXmlReader(OrgPath, new Progress<float>((f) =>
@@ -98,20 +106,53 @@ namespace Penguin.Web.IPServices
                 ReportProgress.Report(("XML: ORG", f));
             }));
 
-            ConcurrentBag<(string OrgName, string IP)> bag = new ConcurrentBag<(string OrgName, string IP)>();
+
+            Dictionary<string, List<FindOwnerContainer>> matchLookup = new Dictionary<string, List<FindOwnerContainer>>();
+
+            foreach (FindOwnerContainer lookup in matchBlocks)
+            {
+                string org = lookup.Block.OrgHandle;
+                List<FindOwnerContainer> collection;
+                if (matchLookup.TryGetValue(org, out collection))
+                {
+                    collection.Add(lookup);
+                }
+                else
+                {
+                    matchLookup.Add(org, new List<FindOwnerContainer>()
+                    {
+                        lookup
+                    });
+                }
+            }
+
+
+            ConcurrentBag<(string OrgName, string IP)> toReturn = new ConcurrentBag<(string OrgName, string IP)>();
 
             Parallel.ForEach(readerO.Blocks(), block =>
             {
-                foreach ((string Ip, Net mblock) in matchBlocks)
+                if (matchLookup.TryGetValue(block.Handle, out List<FindOwnerContainer> collection))
                 {
-                    if (block.Handle == mblock.OrgHandle)
+                    foreach (FindOwnerContainer container in collection)
                     {
-                        bag.Add((Ip, mblock.OrgHandle));
+                        toReturn.Add((container.IP, block.Name));
                     }
                 }
             });
 
-            return bag;
+            return toReturn;
+        }
+
+        struct FindOwnerContainer
+        {
+            public string IP { get; set; }
+            public Net Block { get; set; }
+
+            public FindOwnerContainer(string ip, Net block)
+            {
+                IP = ip;
+                Block = block;
+            }
         }
 
         public List<IPAnalysis> GetAnalysis(Net n)

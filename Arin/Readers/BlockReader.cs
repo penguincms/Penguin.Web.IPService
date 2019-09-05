@@ -14,6 +14,8 @@ namespace Penguin.Web.IPServices.Arin.Readers
         protected IProgress<float> ProgressReporter { get; set; }
         float LastProgress { get; set; }
         float FileLength { get; set; }
+        public bool StreamEnd { get; protected set; }
+
         public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress = null)
         {
 
@@ -43,6 +45,11 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
                 if (LastProgress != thisProgress)
                 {
+                    //This is a dumb way to set this but this calculation is expensive
+                    if(thisProgress == 100f)
+                    {
+                        StreamEnd = true;
+                    }
                     LastProgress = thisProgress;
 
                     ProgressReporter.Report(thisProgress);

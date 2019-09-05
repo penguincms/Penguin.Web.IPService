@@ -27,11 +27,9 @@ namespace Penguin.Web.Registrations
 
 
 
-        public override bool IsMatch(IPAddress IPAddress)
+        public override bool IsMatch(BigInteger IPAddress)
         {
-            BigInteger toCheck = IpToInt(IPAddress);
-
-            return toCheck >= From && toCheck <= To;
+            return IPAddress >= From && IPAddress <= To;
         }
     }
 }

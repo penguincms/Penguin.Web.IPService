@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -203,7 +204,7 @@ namespace Penguin.Web
             {
                 foreach (IIPRegistration iPRegistration in IPRegistrations)
                 {
-                    if (iPRegistration.IsMatch(Ip))
+                    if (iPRegistration.IsMatch(IPRegistration.IpToInt(Ip)))
                     {
                         return true;
                     }

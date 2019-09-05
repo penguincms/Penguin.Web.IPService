@@ -57,14 +57,16 @@ namespace Penguin.Web.IPServices
         public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => FindOwner(null, Ips);
         public IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips)
         {
-            foreach((string OrgName, string Ip) in TxtService.FindOwner(ReportProgress, Ips))
-            {
-                yield return (OrgName, Ip);
-            }
             foreach ((string OrgName, string Ip) in XmlService.FindOwner(ReportProgress, Ips))
             {
                 yield return (OrgName, Ip);
             }
+
+            foreach ((string OrgName, string Ip) in TxtService.FindOwner(ReportProgress, Ips))
+            {
+                yield return (OrgName, Ip);
+            }
+
         }
 
         public ArinService(string NetTxtPath, string OrgTxtPath, string NetXmlPath, string OrgXmlPath) : base(null, null)
