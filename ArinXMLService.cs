@@ -26,7 +26,7 @@ namespace Penguin.Web.IPServices
 
                 NetXmlReader netReader = new NetXmlReader(NetPath);
 
-                PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => BlackList.Select(a => a.Property).Contains(p.Name)).ToArray();
+                PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => BlackList.SelectMany(a => a.Properties).Contains(p.Name)).ToArray();
 
                 List<Org> matchingOrgs = MatchingOrgs(BlackList, OrgPath, new Progress<(string, float)>((t) => {
 
@@ -187,8 +187,8 @@ namespace Penguin.Web.IPServices
 
         private static IEnumerable<T> FindMatches<T>(IEnumerable<T> Next, List<ArinBlacklist> BlackListEntries, Func<T, bool> AdditionalCriteria = null) where T : class
         {
-            PropertyInfo[] props = typeof(T).GetProperties().Where(p => BlackListEntries.Select(a => a.Property).Contains(p.Name)).ToArray();
-            List<ArinBlacklist> entriesToCheck = BlackListEntries.Where(b => props.Any(p => p.Name == b.Property)).ToList();
+            PropertyInfo[] props = typeof(T).GetProperties().Where(p => BlackListEntries.SelectMany(a => a.Properties).Contains(p.Name)).ToArray();
+            List<ArinBlacklist> entriesToCheck = BlackListEntries.Where(b => props.Any(p => b.Properties.Contains(p.Name))).ToList();
             ConcurrentBag<T> toReturn = new ConcurrentBag<T>();
 
             Parallel.ForEach(Next, block =>
@@ -203,45 +203,19 @@ namespace Penguin.Web.IPServices
                     {
                         foreach (PropertyInfo thisProperty in props)
                         {
-                            if (thisProperty.Name != thisBlacklistEntry.Property)
+                            foreach (string property in thisBlacklistEntry.Properties)
                             {
-                                continue;
-                            }
-                            else
-                            {
-                                string netVal = thisProperty.GetValue(block)?.ToString();
-
-                                if (string.IsNullOrWhiteSpace(netVal))
+                                if (thisProperty.Name != property)
                                 {
                                     continue;
                                 }
-
-
-                                switch (thisBlacklistEntry.MatchMethod)
+                                else
                                 {
-                                    case MatchMethod.Regex:
-                                        if (Regex.IsMatch(netVal, thisBlacklistEntry.Value))
-                                        {
-                                            toReturn.Add(block);
-                                        }
-                                        break;
-                                    case MatchMethod.Contains:
-                                        if (netVal.Contains(thisBlacklistEntry.Value))
-                                        {
-                                            toReturn.Add(block);
-                                        }
-                                        break;
-                                    case MatchMethod.Exact:
-                                        if (string.Equals(netVal, thisBlacklistEntry.Value))
-                                        {
-                                            toReturn.Add(block);
-                                        }
-                                        break;
-                                    default:
-                                        throw new NotImplementedException($"{nameof(MatchMethod)} value {thisBlacklistEntry.MatchMethod.ToString()} is not implemented");
-
+                                    if(CheckProperty(thisProperty.GetValue(block)?.ToString(), thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
+                                    {
+                                        toReturn.Add(block);
+                                    }
                                 }
-
                             }
                         }
                     }

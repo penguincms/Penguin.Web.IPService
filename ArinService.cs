@@ -17,18 +17,7 @@ namespace Penguin.Web.IPServices
         ArinTXTService TxtService { get; set; }
         ArinXMLService XmlService { get; set; }
 
-        public bool IsBlacklisted(IPAddress address)
-        {
-            foreach(IPAnalysis analysis in this.BlackList.Analysis)
-            {
-                if (analysis.IsMatch(address))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+       
 
         public async Task LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress)
         {
@@ -36,22 +25,30 @@ namespace Penguin.Web.IPServices
 
             this.BlackList = new Blacklist();
 
-            loads[0] = TxtService.LoadBlacklist(BlackLists, reportProgress).ContinueWith(t =>
+            loads[0] = Task.Run(async () =>
+                {
+                    LoadCompletionArgs Result = await TxtService.LoadBlacklist(BlackLists, reportProgress);
+
+                    foreach (IPAnalysis ip in Result.Analysis)
+                    {
+                        this.BlackList.Analysis.Add(ip);
+                    }
+                }                
+            );
+
+            loads[1] = Task.Run(async () =>
             {
-                foreach(IPAnalysis ip in t.Result.Analysis)
+                LoadCompletionArgs Result = await XmlService.LoadBlacklist(BlackLists, reportProgress);
+
+                foreach (IPAnalysis ip in Result.Analysis)
                 {
                     this.BlackList.Analysis.Add(ip);
                 }
             });
 
-            loads[1] = XmlService.LoadBlacklist(BlackLists, reportProgress).ContinueWith(t => {
-                foreach (IPAnalysis ip in t.Result.Analysis)
-                {
-                    this.BlackList.Analysis.Add(ip);
-                }
-            });
+            await Task.WhenAll(loads);
 
-            await Task.WhenAll(loads);            
+            this.BlackList.IsLoaded = true;
         }
 
         public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => FindOwner(null, Ips);

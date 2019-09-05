@@ -51,8 +51,12 @@ namespace Penguin.Web.IPServices
                     }
                 }
 
+                this.BlackList.IsLoaded = true;
+
                 return toReturn;
             });
+
+            
         }
 
 
@@ -73,38 +77,15 @@ namespace Penguin.Web.IPServices
                 {
                     foreach (ArinBlacklist thisBlacklistEntry in BlackListEntries)
                     {
-                        if (block.TryGetValue(thisBlacklistEntry.Property, out string netVal))
+                        foreach (string property in thisBlacklistEntry.Properties)
                         {
-                            if (string.IsNullOrWhiteSpace(netVal))
+                            if (block.TryGetValue(property, out string netVal))
                             {
-                                continue;
+                                if(CheckProperty(netVal, thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
+                                {
+                                    toReturn.Add(block);
+                                }
                             }
-
-                            switch (thisBlacklistEntry.MatchMethod)
-                            {
-                                case MatchMethod.Regex:
-                                    if (Regex.IsMatch(netVal, thisBlacklistEntry.Value))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                    break;
-                                case MatchMethod.Contains:
-                                    if (netVal.Contains(thisBlacklistEntry.Value))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                    break;
-                                case MatchMethod.Exact:
-                                    if (string.Equals(netVal, thisBlacklistEntry.Value))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                    break;
-                                default:
-                                    throw new NotImplementedException($"{nameof(MatchMethod)} value {thisBlacklistEntry.MatchMethod.ToString()} is not implemented");
-
-                            }
-
                         }
                     }
                 }
