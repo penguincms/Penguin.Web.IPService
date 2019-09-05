@@ -70,7 +70,7 @@ namespace Penguin.Web.IPServices
 
             NetXmlReader readerX = new NetXmlReader(NetPath, new Progress<float>((f) =>
             {
-                ReportProgress.Report(("TXT: ORG", f));
+                ReportProgress.Report(("XML: NET", f));
             }));
 
 
