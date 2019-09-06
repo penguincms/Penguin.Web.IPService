@@ -37,12 +37,12 @@ namespace Penguin.Web.IPServices
 
                 List<Org> matchingOrgs = MatchingOrgs(BlackList, OrgPath, new Progress<(string, float)>((t) =>
                 {
-                    reportProgress.Report(("XML: " + t.Item1, t.Item2));
+                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
                 }));
 
                 List<Net> matchingNets = MatchingNets(BlackList, matchingOrgs, NetPath, new Progress<(string, float)>((t) =>
                 {
-                    reportProgress.Report(("XML: " + t.Item1, t.Item2));
+                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
                 }));
 
                 LoadCompletionArgs toReturn = new LoadCompletionArgs();

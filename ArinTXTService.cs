@@ -37,16 +37,18 @@ namespace Penguin.Web.IPServices
         {
             List<ArinBlacklist> BlackList = BlackLists.ToList();
 
+
             return await Task.Run(() =>
             {
+
                 List<Dictionary<string, string>> matchingOrgs = MatchingOrgs(BlackList, this.OrgPath, new Progress<(string, float)>((t) =>
                 {
-                    reportProgress.Report(("TXT: " + t.Item1, t.Item2));
+                    reportProgress?.Report(("TXT: " + t.Item1, t.Item2));
                 }));
 
                 List<Dictionary<string, string>> matchingNets = MatchingNets(BlackList, matchingOrgs, this.NetPath, new Progress<(string, float)>((t) =>
                 {
-                    reportProgress.Report(("TXT: " + t.Item1, t.Item2));
+                    reportProgress?.Report(("TXT: " + t.Item1, t.Item2));
                 }));
 
                 LoadCompletionArgs toReturn = new LoadCompletionArgs();
