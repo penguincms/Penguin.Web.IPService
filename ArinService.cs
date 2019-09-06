@@ -22,7 +22,7 @@ namespace Penguin.Web.IPServices
         /// <param name="BlackLists">A list of blacklist entries describing what to block</param>
         /// <param name="reportProgress">A method used to return progress information during the load</param>
         /// <returns>A task that will complete when the blacklist has fully loaded</returns>
-        public async Task LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress)
+        public async Task LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress = null)
         {
             Task[] loads = new Task[2];
 
