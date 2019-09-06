@@ -2,22 +2,39 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageLicenseFile>License.txt</PackageLicenseFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageProjectUrl>http://www.penguinms.com/Nuget</PackageProjectUrl>
+    <PackageIconUrl>http://www.penguinms.com/client/images/pg.png</PackageIconUrl>
+    <Version>1.0.0</Version>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Module for managing access based on various aspects of IP address. Allows for loading Arin data and blocking based on organization</Description>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Penguin.Console" Version="1.0.0" />
     <PackageReference Include="Penguin.Extensions.String" Version="2.0.2" />
+    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="1.0.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Penguin.Reflection.Serialization.XML\Penguin.Reflection.Serialization.XML.csproj" />
-  </ItemGroup>
-
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningsAsErrors>NU1605, CS1591</WarningsAsErrors>
+    <DocumentationFile>Penguin.Web.IPServices.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DocumentationFile>Penguin.Web.IPServices.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <None Update="Whois\whosip.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <None Include="License.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 </Project>

@@ -1,26 +1,18 @@
-﻿using Penguin.Extensions.String;
-using System;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
-    public class BlockTxtReader : BlockReader<Dictionary<string, string>>
+    internal class BlockTxtReader : BlockReader<Dictionary<string, string>>
     {
         public int ThreadCount { get; set; }
 
-        int newLineCount = 0;
+        private int newLineCount = 0;
 
         public BlockTxtReader(string filePath, IProgress<float> reportProgress, int bufferSize = 3000) : base(filePath, bufferSize, reportProgress)
         {
-
         }
-
 
         private List<string> ReadNextText()
         {
@@ -32,7 +24,6 @@ namespace Penguin.Web.IPServices.Arin.Readers
             {
                 while ((line = TextReader.ReadLine()) != null)
                 {
-
                     if (string.IsNullOrWhiteSpace(line))
                     {
                         newLineCount++;
@@ -64,7 +55,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
         {
             List<string> Lines = ReadNextText();
 
-            if(Lines is null)
+            if (Lines is null)
             {
                 return null;
             }
@@ -86,10 +77,10 @@ namespace Penguin.Web.IPServices.Arin.Readers
             }
 
             return thisBlock;
-
         }
 
-        object lockObject = new object();
+        private object lockObject = new object();
+
         public IEnumerable<Dictionary<string, string>> Blocks()
         {
             Dictionary<string, string> block;

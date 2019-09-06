@@ -1,24 +1,19 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
-    public abstract class BlockReader<T> : IDisposable
+    internal abstract class BlockReader<T> : IDisposable
     {
         protected TextReader TextReader { get; set; }
         protected IProgress<float> ProgressReporter { get; set; }
-        float LastProgress { get; set; }
-        float FileLength { get; set; }
+        private float LastProgress { get; set; }
+        private float FileLength { get; set; }
         public bool StreamEnd { get; protected set; }
 
         public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress = null)
         {
-
             ProgressReporter = reportProgress;
 
             if (string.IsNullOrWhiteSpace(filePath))
@@ -46,7 +41,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
                 if (LastProgress != thisProgress)
                 {
                     //This is a dumb way to set this but this calculation is expensive
-                    if(thisProgress == 100f)
+                    if (thisProgress == 100f)
                     {
                         StreamEnd = true;
                     }
@@ -57,8 +52,8 @@ namespace Penguin.Web.IPServices.Arin.Readers
             }
         }
 
-
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -93,7 +88,6 @@ namespace Penguin.Web.IPServices.Arin.Readers
             // GC.SuppressFinalize(this);
         }
 
-
-        #endregion
+        #endregion IDisposable Support
     }
 }

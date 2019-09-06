@@ -1,11 +1,10 @@
-﻿using Penguin.Reflection.Serialization.XML.Classes;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Text;
 
 namespace Penguin.Web.IPServices.Arin
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
     public class Net
     {
         public string Ref { get; set; }
@@ -21,4 +20,6 @@ namespace Penguin.Web.IPServices.Arin
         public int Version { get; set; }
         public List<string> Comment { get; set; }
     }
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

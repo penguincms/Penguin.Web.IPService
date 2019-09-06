@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Penguin.Web.IPServices.Arin
 {
-    public class Org
+    internal class Org
     {
         public string Ref { get; set; }
         public string City { get; set; }
@@ -18,6 +17,5 @@ namespace Penguin.Web.IPServices.Arin
         public string Iso3166_2 { get; set; }
         public List<string> StreetAddress { get; set; }
         public DateTime UpdateDate { get; set; }
-
     }
 }

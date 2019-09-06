@@ -1,17 +1,21 @@
 ﻿using Penguin.Web.Objects;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Penguin.Web.IPServices.Objects
 {
+    /// <summary>
+    /// Contains a list of IP analysis relevant to the provided blacklist during loading
+    /// </summary>
     public class LoadCompletionArgs
     {
-        public LoadCompletionArgs()
+        internal LoadCompletionArgs()
         {
             Analysis = new ConcurrentBag<IPAnalysis>();
         }
+
+        /// <summary>
+        /// A list of IP analysis relevant to the provided blacklist during loading
+        /// </summary>
         public ConcurrentBag<IPAnalysis> Analysis { get; set; }
     }
 }

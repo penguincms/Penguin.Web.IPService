@@ -4,8 +4,15 @@ using System.Net;
 
 namespace Penguin.Web.Objects
 {
+    /// <summary>
+    /// Represents a range of IP addresses
+    /// </summary>
     public class IPRange
     {
+        /// <summary>
+        /// Constructs a new instance of this class using the range given as a string "from-to". DOES support IPV6
+        /// </summary>
+        /// <param name="ipRange">The range given as a string "from-to"</param>
         public IPRange(string ipRange)
         {
             if (ipRange == null)
@@ -19,6 +26,10 @@ namespace Penguin.Web.Objects
             }
         }
 
+        /// <summary>
+        /// Returns a list of all IP addresses in this range. Only supports IPV4 because I never updated it
+        /// </summary>
+        /// <returns>A list of all IPs in this range</returns>
         public IEnumerable<IPAddress> GetAllIP()
         {
             int capacity = 1;
@@ -46,11 +57,10 @@ namespace Penguin.Web.Objects
         }
 
         /// <summary>
-        /// Parse IP-range string in CIDR notation.
-        /// For example "12.15.0.0/16".
+        /// Parse IP-range string in CIDR notation and populates this object.
         /// </summary>
-        /// <param name="ipRange"></param>
-        /// <returns></returns>
+        /// <param name="ipRange">The CIDR range to parse. Obly supports IPV4 because it wasn't updated</param>
+        /// <returns>True if it succeeded</returns>
         private bool TryParseCIDRNotation(string ipRange)
         {
             string[] x = ipRange.Split('/');

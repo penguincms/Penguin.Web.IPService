@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 
 namespace Penguin.Web.Registrations
 {
@@ -18,5 +14,4 @@ namespace Penguin.Web.Registrations
             return IpToInt(ParseIp(Source)).Equals(IPAddress);
         }
     }
-
 }

@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Numerics;
-using System.Text;
 
 namespace Penguin.Web.Registrations
 {
     internal class CIDRRegistration : IPRegistration
     {
-        IPAddress CidrAddress { get; set; }
+        private IPAddress CidrAddress { get; set; }
 
-        BigInteger CidrAddressBytes { get; set; }
+        private BigInteger CidrAddressBytes { get; set; }
 
-        int CidrMaskBytes { get; set; }
+        private int CidrMaskBytes { get; set; }
 
         public CIDRRegistration(string CIDR)
         {
@@ -27,14 +25,13 @@ namespace Penguin.Web.Registrations
 
             CidrAddress = ParseIp(parts[0]);
 
-
             if (parts.Length != 2)
             {
                 throw new FormatException($"cidrMask was not in the correct format:\nExpected: a.b.c.d/n\nActual: {CIDR}");
             }
 
             if (!int.TryParse(parts[1], out int netmaskBitCount))
-            {             
+            {
                 throw new FormatException($"Unable to parse netmask bit count from {CIDR}");
             }
 
@@ -45,11 +42,11 @@ namespace Penguin.Web.Registrations
 
             CidrAddressBytes = IpToInt(CidrAddress);
 
-            CidrMaskBytes = IPAddress.HostToNetworkOrder(-1 << (32 - netmaskBitCount)); 
+            CidrMaskBytes = IPAddress.HostToNetworkOrder(-1 << (32 - netmaskBitCount));
         }
 
         public override bool IsMatch(BigInteger IPAddress)
-        {        
+        {
             return (IPAddress & CidrMaskBytes) == (CidrAddressBytes & CidrMaskBytes);
         }
     }

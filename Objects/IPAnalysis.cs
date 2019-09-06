@@ -2,19 +2,22 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 namespace Penguin.Web.Objects
 {
+    /// <summary>
+    /// Contains information pulled from the ARIN data dumps about a relevant IP
+    /// </summary>
     [Serializable]
     public struct IPAnalysis : IIPRegistration
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public DateTime DiscoveryDate { get; set; }
         public string IpAddress { get; set; }
         public string Country { get; set; }
         public string NetworkName { get; set; }
         public string OwnerName { get; set; }
-        public string[] CIDR { get; set; } 
+        public string[] CIDR { get; set; }
         public string FromIp { get; set; }
         public string ToIp { get; set; }
         public bool Allocated { get; set; }
@@ -26,14 +29,26 @@ namespace Penguin.Web.Objects
         public string Fax { get; set; }
         public string WhoisSource { get; set; }
         public string OrgID { get; set; }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         [NonSerialized]
         private List<IIPRegistration> Registrations;
 
+        /// <summary>
+        /// Checks if the given IP is described by this analysis
+        /// </summary>
+        /// <param name="IPAddress">The IP to check</param>
+        /// <returns>If the IP is represented by this analysis</returns>
         public bool IsMatch(System.Net.IPAddress IPAddress) => IsMatch(IPRegistration.IpToInt(IPAddress));
+
+        /// <summary>
+        /// Checks if the given IP is described by this analysis
+        /// </summary>
+        /// <param name="IPAddress">The IP to check</param>
+        /// <returns>If the IP is represented by this analysis</returns>
         public bool IsMatch(BigInteger IPAddress)
         {
-            if(Registrations is null)
+            if (Registrations is null)
             {
                 Registrations = new List<IIPRegistration>();
 
@@ -54,13 +69,12 @@ namespace Penguin.Web.Objects
                 }
             }
 
-            foreach(IIPRegistration registration in Registrations)
+            foreach (IIPRegistration registration in Registrations)
             {
-                if(registration.IsMatch(IPAddress)) { return true; }
+                if (registration.IsMatch(IPAddress)) { return true; }
             }
 
             return false;
         }
     }
 }
-

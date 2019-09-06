@@ -6,17 +6,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Numerics;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Penguin.Web
 {
-    public static class IPService
+    internal static class IPService
     {
-        static List<IIPRegistration> IPRegistrations { get; set; }
+        private static List<IIPRegistration> IPRegistrations { get; set; }
 
-        static List<IPAnalysis> DiscoveredRanges { get; set; }
+        private static List<IPAnalysis> DiscoveredRanges { get; set; }
 
         public static void AddAnalysis(IPAnalysis analysis)
         {
@@ -39,12 +38,13 @@ namespace Penguin.Web
 
         private static void TryLoadAnalysis()
         {
-            if(DiscoveredRanges is null)
+            if (DiscoveredRanges is null)
             {
-                if(File.Exists(ANALYSIS_FILENAME))
+                if (File.Exists(ANALYSIS_FILENAME))
                 {
                     LoadAnalysis();
-                } else
+                }
+                else
                 {
                     DiscoveredRanges = new List<IPAnalysis>();
                 }
@@ -59,6 +59,7 @@ namespace Penguin.Web
         }
 
         public const string BLACKLIST_FILENAME = "Blacklist.config";
+
         static IPService()
         {
             if (File.Exists(BLACKLIST_FILENAME))
@@ -93,18 +94,18 @@ namespace Penguin.Web
         public const double QueryTimeout = 2000;
         private static DateTime LastQuery { get; set; }
         private static Object QueryLock { get; set; } = new object();
+
         public static IPAnalysis QueryIP(IPAddress Ip)
         {
             IPAnalysis? analysis = null;
 
             lock (QueryLock)
             {
-
                 TryLoadAnalysis();
 
-                foreach(IPAnalysis discoveredAnalysis in DiscoveredRanges)
+                foreach (IPAnalysis discoveredAnalysis in DiscoveredRanges)
                 {
-                    if(discoveredAnalysis.IsMatch(Ip))
+                    if (discoveredAnalysis.IsMatch(Ip))
                     {
                         analysis = discoveredAnalysis;
                         break;
@@ -137,55 +138,66 @@ namespace Penguin.Web
                             case "whois source":
                                 nanalysis.WhoisSource = value;
                                 break;
+
                             case "ip address":
                                 nanalysis.IpAddress = value;
                                 break;
+
                             case "country":
                                 nanalysis.Country = value;
                                 break;
+
                             case "network name":
                                 nanalysis.NetworkName = value;
                                 break;
+
                             case "owner name":
                                 nanalysis.OwnerName = value;
                                 break;
+
                             case "cidr":
                                 nanalysis.CIDR = value.Split(",").Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
                                 break;
+
                             case "from ip":
                                 nanalysis.FromIp = value;
                                 break;
+
                             case "to ip":
                                 nanalysis.ToIp = value;
                                 break;
+
                             case "allocated":
                                 nanalysis.Allocated = value == "Yes";
                                 break;
+
                             case "contact name":
                                 nanalysis.ContactName = value;
                                 break;
+
                             case "address":
                                 nanalysis.Address = value;
                                 break;
+
                             case "email":
                                 nanalysis.Email = value;
                                 break;
+
                             case "abuse email":
                                 nanalysis.AbuseEmail = value;
                                 break;
+
                             case "phone":
                                 nanalysis.Phone = value;
                                 break;
+
                             case "fax":
                                 nanalysis.Fax = value;
                                 break;
-
                         }
-
                     }
 
                     analysis = nanalysis;
-
 
                     LastQuery = DateTime.Now;
 
@@ -197,9 +209,9 @@ namespace Penguin.Web
 
             return analysis.Value;
         }
+
         public static bool IsBlacklisted(IPAddress Ip)
         {
-
             if (IPRegistrations != null)
             {
                 foreach (IIPRegistration iPRegistration in IPRegistrations)

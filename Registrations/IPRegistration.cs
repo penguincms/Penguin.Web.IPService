@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Numerics;
-using System.Text;
 
 namespace Penguin.Web.Registrations
 {
@@ -39,7 +37,7 @@ namespace Penguin.Web.Registrations
                 start = start + "0000";
             }
 
-            while(start.Contains(".."))
+            while (start.Contains(".."))
             {
                 start = start.Replace("..", ".0.");
             }
@@ -53,8 +51,8 @@ namespace Penguin.Web.Registrations
         }
 
         public static BigInteger IpToInt(string address) => IpToInt(ParseIp(address));
-        
-            public static BigInteger IpToInt(IPAddress address)
+
+        public static BigInteger IpToInt(IPAddress address)
         {
             byte[] AddressBytes = address.GetAddressBytes();
 
@@ -66,6 +64,5 @@ namespace Penguin.Web.Registrations
 
             return new BigInteger(PaddedAddressBytes);
         }
-
     }
 }
