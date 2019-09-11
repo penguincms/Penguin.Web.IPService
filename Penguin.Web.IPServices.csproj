@@ -5,7 +5,7 @@
     <PackageLicenseFile>License.txt</PackageLicenseFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageProjectUrl>http://www.penguinms.com/Nuget</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/penguincms/Penguin.Web.IPServices</PackageProjectUrl>
     <PackageIconUrl>http://www.penguinms.com/client/images/pg.png</PackageIconUrl>
     <Version>1.0.2</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
