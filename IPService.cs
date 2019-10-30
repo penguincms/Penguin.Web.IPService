@@ -1,4 +1,4 @@
-﻿using Penguin.Extensions.String;
+﻿using Penguin.Extensions.Strings;
 using Penguin.Web.Objects;
 using Penguin.Web.Registrations;
 using System;
@@ -124,7 +124,7 @@ namespace Penguin.Web
                         System.Threading.Thread.Sleep((int)(QueryTimeout - (DateTime.Now - LastQuery).TotalMilliseconds));
                     }
 
-                    string Response = Penguin.Console.Process.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip.ToString());
+                    string Response = Penguin.Console.ProcessHelper.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip.ToString()).ToString();
 
                     string[] lines = Response.Split('\r').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToArray();
 
