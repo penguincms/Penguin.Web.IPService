@@ -25,6 +25,7 @@ namespace Penguin.Web.IPServices
         /// <param name="BlackLists">A list of blacklist entries describing what to block</param>
         /// <param name="reportProgress">A method used to return progress information during the load</param>
         /// <returns>A task that will complete when the blacklist has fully loaded</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "<Pending>")]
         public async Task<LoadCompletionArgs> LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress = null)
         {
             List<ArinBlacklist> BlackList = BlackLists.ToList();
@@ -55,7 +56,7 @@ namespace Penguin.Web.IPServices
                     }
                 }
 
-                this.BlackList.Analysis = toReturn.Analysis;
+                this.BlackList.AddRange(toReturn.Analysis);
                 this.BlackList.IsLoaded = true;
 
                 return toReturn;

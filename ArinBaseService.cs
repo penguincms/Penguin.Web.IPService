@@ -34,7 +34,7 @@ namespace Penguin.Web.IPServices
         /// <summary>
         /// Loaded blacklist information
         /// </summary>
-        protected Blacklist BlackList { get; set; } = new Blacklist();
+        public Blacklist BlackList { get; protected set; } = new Blacklist();
 
         /// <summary>
         /// Checks the given IP against the black list

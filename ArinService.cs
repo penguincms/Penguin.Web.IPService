@@ -15,6 +15,12 @@ namespace Penguin.Web.IPServices
         private ArinTXTService TxtService { get; set; }
         private ArinXMLService XmlService { get; set; }
 
+
+        public void LoadBlacklist(Blacklist blacklist)
+        {
+            this.BlackList = blacklist;
+        }
+
         /// <summary>
         /// Using the provided blacklist entry list, this method populates the internal blacklist with relevant IP information for
         /// Determining later if the information associated with an IP address fails a blacklist check
@@ -34,7 +40,7 @@ namespace Penguin.Web.IPServices
 
                     foreach (IPAnalysis ip in Result.Analysis)
                     {
-                        this.BlackList.Analysis.Add(ip);
+                        this.BlackList.Add(ip);
                     }
                 }
             );
@@ -45,7 +51,7 @@ namespace Penguin.Web.IPServices
 
                 foreach (IPAnalysis ip in Result.Analysis)
                 {
-                    this.BlackList.Analysis.Add(ip);
+                    this.BlackList.Add(ip);
                 }
             });
 
