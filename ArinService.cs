@@ -91,5 +91,13 @@ namespace Penguin.Web.IPServices
             TxtService = new ArinTXTService(NetTxtPath, OrgTxtPath);
             XmlService = new ArinXMLService(NetXmlPath, OrgXmlPath);
         }
+
+        /// <summary>
+        /// Constructs a new instance of this service
+        /// </summary>
+        public ArinService(Blacklist blacklist) : base(null, null)
+        {
+            this.LoadBlacklist(blacklist);
+        }
     }
 }

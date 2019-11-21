@@ -16,24 +16,14 @@ namespace Penguin.Web.IPServices.Objects
         private ConcurrentBag<IPAnalysis> _Analysis = new ConcurrentBag<IPAnalysis>();
 
 
-        public IReadOnlyList<IPAnalysis> Analysis { 
+        public ConcurrentBagWrapper<IPAnalysis> Analysis { 
             get
             {
-                return _Analysis.ToList();
+                return new ConcurrentBagWrapper<IPAnalysis>(_Analysis);
             }
-            set
+            internal set
             {
-                _Analysis = new ConcurrentBag<IPAnalysis>();
-
-                if(value is null)
-                {
-                    return;
-                }
-
-                foreach(IPAnalysis thisAnalysis in value)
-                {
-                    _Analysis.Add(thisAnalysis);
-                }
+                _Analysis = value.Backing;
             }
         }
         /// <summary>
