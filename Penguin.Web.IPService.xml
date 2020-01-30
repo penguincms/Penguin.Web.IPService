@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>Penguin.Web.IPServices</name>
+        <name>Penguin.Web.IPService</name>
     </assembly>
     <members>
         <member name="T:Penguin.Web.IPServices.ArinBaseService">
@@ -92,6 +92,11 @@
             <param name="OrgTxtPath">The path of the ARIN ORG .txt dump</param>
             <param name="NetXmlPath">The path of the ARIN NET .xml dump</param>
             <param name="OrgXmlPath">The path of the ARIN ORG .xml dump</param>
+        </member>
+        <member name="M:Penguin.Web.IPServices.ArinService.#ctor(Penguin.Web.IPServices.Objects.Blacklist)">
+            <summary>
+            Constructs a new instance of this service
+            </summary>
         </member>
         <member name="T:Penguin.Web.IPServices.ArinTXTService">
             <summary>
@@ -213,7 +218,7 @@
             Represents the a blacklist
             </summary>
         </member>
-        <member name="P:Penguin.Web.IPServices.Objects.Blacklist.Analysis">
+        <member name="F:Penguin.Web.IPServices.Objects.Blacklist._Analysis">
             <summary>
             Any IP analysis needed to check for IPs that fall in blacklisted ranges
             </summary>
