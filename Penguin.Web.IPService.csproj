@@ -6,6 +6,7 @@
     <Description>Module for managing access based on various aspects of IP address. Allows for loading Arin data and blocking based on organization</Description>
     <AssemblyName>Penguin.Web.IPService</AssemblyName>
     <RootNamespace>Penguin.Web.IPService</RootNamespace>
+    <DocumentationFile>Penguin.Web.IPService.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
