@@ -15,8 +15,8 @@ namespace Penguin.Web.IPServices.Objects
         /// </summary>
         private ConcurrentBag<IPAnalysis> _Analysis = new ConcurrentBag<IPAnalysis>();
 
-
-        public ConcurrentBagWrapper<IPAnalysis> Analysis { 
+        public ConcurrentBagWrapper<IPAnalysis> Analysis
+        {
             get
             {
                 return new ConcurrentBagWrapper<IPAnalysis>(_Analysis);
@@ -26,6 +26,7 @@ namespace Penguin.Web.IPServices.Objects
                 _Analysis = value.Backing;
             }
         }
+
         /// <summary>
         /// If the function that loads this blacklist has completed
         /// </summary>
@@ -38,7 +39,12 @@ namespace Penguin.Web.IPServices.Objects
 
         public void AddRange(IEnumerable<IPAnalysis> analyses)
         {
-            foreach(IPAnalysis analysis in analyses)
+            if (analyses is null)
+            {
+                throw new System.ArgumentNullException(nameof(analyses));
+            }
+
+            foreach (IPAnalysis analysis in analyses)
             {
                 Add(analysis);
             }

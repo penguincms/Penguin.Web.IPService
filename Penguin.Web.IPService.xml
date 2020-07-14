@@ -9,9 +9,9 @@
             Base abstract for ARIN services
             </summary>
         </member>
-        <member name="P:Penguin.Web.IPServices.ArinBaseService.OrgPath">
+        <member name="P:Penguin.Web.IPServices.ArinBaseService.BlackList">
             <summary>
-            The path to the Organization file
+            Loaded blacklist information
             </summary>
         </member>
         <member name="P:Penguin.Web.IPServices.ArinBaseService.NetPath">
@@ -19,10 +19,19 @@
             The path to the Net file
             </summary>
         </member>
-        <member name="P:Penguin.Web.IPServices.ArinBaseService.BlackList">
+        <member name="P:Penguin.Web.IPServices.ArinBaseService.OrgPath">
             <summary>
-            Loaded blacklist information
+            The path to the Organization file
             </summary>
+        </member>
+        <member name="M:Penguin.Web.IPServices.ArinBaseService.CheckProperty(System.String,System.String,Penguin.Web.IPServices.Arin.MatchMethod)">
+            <summary>
+            Compares a block property against a blacklist property value using the given match method
+            </summary>
+            <param name="value">The property of the block entry</param>
+            <param name="against">The property specified on the blacklist</param>
+            <param name="method">The type of check method to use</param>
+            <returns>If its a match</returns>
         </member>
         <member name="M:Penguin.Web.IPServices.ArinBaseService.CheckIP(System.String)">
             <summary>
@@ -52,15 +61,6 @@
             <param name="ReportProgress">A method used to return progress information during the load</param>
             <param name="Ips">Any number of IP addresses</param>
             <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
-        </member>
-        <member name="M:Penguin.Web.IPServices.ArinBaseService.CheckProperty(System.String,System.String,Penguin.Web.IPServices.Arin.MatchMethod)">
-            <summary>
-            Compares a block property against a blacklist property value using the given match method
-            </summary>
-            <param name="value">The property of the block entry</param>
-            <param name="against">The property specified on the blacklist</param>
-            <param name="method">The type of check method to use</param>
-            <returns>If its a match</returns>
         </member>
         <member name="T:Penguin.Web.IPServices.ArinService">
             <summary>
@@ -132,15 +132,6 @@
             A service for checking XML source files provided by arin
             </summary>
         </member>
-        <member name="M:Penguin.Web.IPServices.ArinXMLService.LoadBlacklist(System.Collections.Generic.IEnumerable{Penguin.Web.IPServices.Arin.ArinBlacklist},System.IProgress{System.ValueTuple{System.String,System.Single}})">
-            <summary>
-            Using the provided blacklist entry list, this method populates the internal blacklist with relevant IP information for
-            Determining later if the information associated with an IP address fails a blacklist check
-            </summary>
-            <param name="BlackLists">A list of blacklist entries describing what to block</param>
-            <param name="reportProgress">A method used to return progress information during the load</param>
-            <returns>A task that will complete when the blacklist has fully loaded</returns>
-        </member>
         <member name="M:Penguin.Web.IPServices.ArinXMLService.#ctor(System.String,System.String)">
             <summary>
             Constructs a new instance of the XML service using the paths provided for the XML source files
@@ -155,6 +146,15 @@
             <param name="ReportProgress">A method used to return progress information during the load</param>
             <param name="Ips">Any number of IP addresses</param>
             <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
+        </member>
+        <member name="M:Penguin.Web.IPServices.ArinXMLService.LoadBlacklist(System.Collections.Generic.IEnumerable{Penguin.Web.IPServices.Arin.ArinBlacklist},System.IProgress{System.ValueTuple{System.String,System.Single}})">
+            <summary>
+            Using the provided blacklist entry list, this method populates the internal blacklist with relevant IP information for
+            Determining later if the information associated with an IP address fails a blacklist check
+            </summary>
+            <param name="BlackLists">A list of blacklist entries describing what to block</param>
+            <param name="reportProgress">A method used to return progress information during the load</param>
+            <returns>A task that will complete when the blacklist has fully loaded</returns>
         </member>
         <member name="M:Penguin.Web.IPServices.ArinXMLService.GetAnalysis(Penguin.Web.IPServices.Arin.Net)">
             <summary>

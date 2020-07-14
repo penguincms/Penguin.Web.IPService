@@ -18,49 +18,16 @@ namespace Penguin.Web.IPServices
     /// </summary>
     public class ArinXMLService : ArinBaseService
     {
-        /// <summary>
-        /// Using the provided blacklist entry list, this method populates the internal blacklist with relevant IP information for
-        /// Determining later if the information associated with an IP address fails a blacklist check
-        /// </summary>
-        /// <param name="BlackLists">A list of blacklist entries describing what to block</param>
-        /// <param name="reportProgress">A method used to return progress information during the load</param>
-        /// <returns>A task that will complete when the blacklist has fully loaded</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "<Pending>")]
-        public async Task<LoadCompletionArgs> LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress = null)
+        private struct FindOwnerContainer
         {
-            List<ArinBlacklist> BlackList = BlackLists.ToList();
+            public Net Block { get; set; }
+            public string IP { get; set; }
 
-            return await Task.Run(() =>
+            public FindOwnerContainer(string ip, Net block)
             {
-                NetXmlReader netReader = new NetXmlReader(NetPath);
-
-                PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => BlackList.SelectMany(a => a.Properties).Contains(p.Name)).ToArray();
-
-                List<Org> matchingOrgs = MatchingOrgs(BlackList, OrgPath, new Progress<(string, float)>((t) =>
-                {
-                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
-                }));
-
-                List<Net> matchingNets = MatchingNets(BlackList, matchingOrgs, NetPath, new Progress<(string, float)>((t) =>
-                {
-                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
-                }));
-
-                LoadCompletionArgs toReturn = new LoadCompletionArgs();
-
-                foreach (Net n in matchingNets)
-                {
-                    foreach (IPAnalysis ip in GetAnalysis(n))
-                    {
-                        toReturn.Analysis.Add(ip);
-                    }
-                }
-
-                this.BlackList.AddRange(toReturn.Analysis);
-                this.BlackList.IsLoaded = true;
-
-                return toReturn;
-            });
+                IP = ip;
+                Block = block;
+            }
         }
 
         /// <summary>
@@ -155,16 +122,49 @@ namespace Penguin.Web.IPServices
             return toReturn;
         }
 
-        private struct FindOwnerContainer
+        /// <summary>
+        /// Using the provided blacklist entry list, this method populates the internal blacklist with relevant IP information for
+        /// Determining later if the information associated with an IP address fails a blacklist check
+        /// </summary>
+        /// <param name="BlackLists">A list of blacklist entries describing what to block</param>
+        /// <param name="reportProgress">A method used to return progress information during the load</param>
+        /// <returns>A task that will complete when the blacklist has fully loaded</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "<Pending>")]
+        public async Task<LoadCompletionArgs> LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress = null)
         {
-            public string IP { get; set; }
-            public Net Block { get; set; }
+            List<ArinBlacklist> BlackList = BlackLists.ToList();
 
-            public FindOwnerContainer(string ip, Net block)
+            return await Task.Run(() =>
             {
-                IP = ip;
-                Block = block;
-            }
+                NetXmlReader netReader = new NetXmlReader(NetPath);
+
+                PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => BlackList.SelectMany(a => a.Properties).Contains(p.Name)).ToArray();
+
+                List<Org> matchingOrgs = MatchingOrgs(BlackList, OrgPath, new Progress<(string, float)>((t) =>
+                {
+                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
+                }));
+
+                List<Net> matchingNets = MatchingNets(BlackList, matchingOrgs, NetPath, new Progress<(string, float)>((t) =>
+                {
+                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
+                }));
+
+                LoadCompletionArgs toReturn = new LoadCompletionArgs();
+
+                foreach (Net n in matchingNets)
+                {
+                    foreach (IPAnalysis ip in GetAnalysis(n))
+                    {
+                        toReturn.Analysis.Add(ip);
+                    }
+                }
+
+                this.BlackList.AddRange(toReturn.Analysis);
+                this.BlackList.IsLoaded = true;
+
+                return toReturn;
+            });
         }
 
         /// <summary>
@@ -174,6 +174,11 @@ namespace Penguin.Web.IPServices
         /// <returns>A list of IPAnalysis representing the ranges specified in the NET</returns>
         protected List<IPAnalysis> GetAnalysis(Net n)
         {
+            if (n is null)
+            {
+                throw new ArgumentNullException(nameof(n));
+            }
+
             List<IPAnalysis> toReturn = new List<IPAnalysis>();
 
             if (n.NetBlocks.Any())
@@ -241,16 +246,6 @@ namespace Penguin.Web.IPServices
             return toReturn;
         }
 
-        private static List<Org> MatchingOrgs(List<ArinBlacklist> BlackListEntries, string OrgXmlPath, IProgress<(string, float)> ReportProgress)
-        {
-            OrgXmlReader reader = new OrgXmlReader(OrgXmlPath, new Progress<float>((f) =>
-            {
-                ReportProgress.Report(("ORG", f));
-            }));
-
-            return FindMatches(reader.Blocks(), BlackListEntries).ToList();
-        }
-
         private static List<Net> MatchingNets(List<ArinBlacklist> BlackListEntries, List<Org> MatchingOrgs, string NetXmlPath, IProgress<(string, float)> ReportProgress)
         {
             NetXmlReader reader = new NetXmlReader(NetXmlPath, new Progress<float>((f) =>
@@ -269,6 +264,16 @@ namespace Penguin.Web.IPServices
             {
                 return orgMatch.Contains(n.OrgHandle);
             }).ToList();
+        }
+
+        private static List<Org> MatchingOrgs(List<ArinBlacklist> BlackListEntries, string OrgXmlPath, IProgress<(string, float)> ReportProgress)
+        {
+            OrgXmlReader reader = new OrgXmlReader(OrgXmlPath, new Progress<float>((f) =>
+            {
+                ReportProgress.Report(("ORG", f));
+            }));
+
+            return FindMatches(reader.Blocks(), BlackListEntries).ToList();
         }
     }
 }

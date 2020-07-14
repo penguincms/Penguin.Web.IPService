@@ -16,79 +16,25 @@ namespace Penguin.Web.IPServices
     public abstract class ArinBaseService
     {
         /// <summary>
-        /// The path to the Organization file
+        /// Loaded blacklist information
         /// </summary>
-        protected string OrgPath { get; set; }
+        public Blacklist BlackList { get; protected set; } = new Blacklist();
 
         /// <summary>
         /// The path to the Net file
         /// </summary>
         protected string NetPath { get; set; }
 
+        /// <summary>
+        /// The path to the Organization file
+        /// </summary>
+        protected string OrgPath { get; set; }
+
         internal ArinBaseService(string orgPath, string netPath)
         {
             OrgPath = orgPath;
             NetPath = netPath;
         }
-
-        /// <summary>
-        /// Loaded blacklist information
-        /// </summary>
-        public Blacklist BlackList { get; protected set; } = new Blacklist();
-
-        /// <summary>
-        /// Checks the given IP against the black list
-        /// </summary>
-        /// <param name="address">The IP to check</param>
-        /// <returns>An object representing the blacklist status and any applicable matches</returns>
-        public BlacklistStatus CheckIP(string address) => CheckIP(IPRegistration.ParseIp(address));
-
-        /// <summary>
-        /// Checks the given IP against the black list
-        /// </summary>
-        /// <param name="address">The IP to check</param>
-        /// <returns>An object representing the blacklist status and any applicable matches</returns>
-        public BlacklistStatus CheckIP(IPAddress address)
-        {
-            BigInteger toCheck = IPRegistration.IpToInt(address);
-
-            BlacklistStatus toReturn = new BlacklistStatus();
-
-            if (!(BlackList?.IsLoaded ?? false))
-            {
-                toReturn.State = BlacklistState.NotLoaded;
-            }
-            else
-            {
-                toReturn.State = BlacklistState.Pass;
-
-                foreach (IPAnalysis analysis in this.BlackList.Analysis)
-                {
-                    if (analysis.IsMatch(toCheck))
-                    {
-                        toReturn.Matches.Add(analysis);
-                        toReturn.State = BlacklistState.Fail;
-                    }
-                }
-            }
-
-            return toReturn;
-        }
-
-        /// <summary>
-        /// Returns the company that the given IP address is registered to. This is blocking so it shouldn't be used for large lists if time is critical
-        /// </summary>
-        /// <param name="Ips">Any number of IP addresses</param>
-        /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
-        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
-
-        /// <summary>
-        /// Returns the company that the given IP address is registered to. This is blocking so it shouldn't be used for large lists if time is critical
-        /// </summary>
-        /// <param name="ReportProgress">A method used to return progress information during the load</param>
-        /// <param name="Ips">Any number of IP addresses</param>
-        /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
-        public abstract IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips);
 
         /// <summary>
         /// Compares a block property against a blacklist property value using the given match method
@@ -140,5 +86,64 @@ namespace Penguin.Web.IPServices
 
             return false;
         }
+
+        /// <summary>
+        /// Checks the given IP against the black list
+        /// </summary>
+        /// <param name="address">The IP to check</param>
+        /// <returns>An object representing the blacklist status and any applicable matches</returns>
+        public BlacklistStatus CheckIP(string address) => CheckIP(IPRegistration.ParseIp(address));
+
+        /// <summary>
+        /// Checks the given IP against the black list
+        /// </summary>
+        /// <param name="address">The IP to check</param>
+        /// <returns>An object representing the blacklist status and any applicable matches</returns>
+        public BlacklistStatus CheckIP(IPAddress address)
+        {
+            if (address is null)
+            {
+                throw new ArgumentNullException(nameof(address));
+            }
+
+            BigInteger toCheck = IPRegistration.IpToInt(address);
+
+            BlacklistStatus toReturn = new BlacklistStatus();
+
+            if (!(BlackList?.IsLoaded ?? false))
+            {
+                toReturn.State = BlacklistState.NotLoaded;
+            }
+            else
+            {
+                toReturn.State = BlacklistState.Pass;
+
+                foreach (IPAnalysis analysis in this.BlackList.Analysis)
+                {
+                    if (analysis.IsMatch(toCheck))
+                    {
+                        toReturn.Matches.Add(analysis);
+                        toReturn.State = BlacklistState.Fail;
+                    }
+                }
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Returns the company that the given IP address is registered to. This is blocking so it shouldn't be used for large lists if time is critical
+        /// </summary>
+        /// <param name="Ips">Any number of IP addresses</param>
+        /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
+        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
+
+        /// <summary>
+        /// Returns the company that the given IP address is registered to. This is blocking so it shouldn't be used for large lists if time is critical
+        /// </summary>
+        /// <param name="ReportProgress">A method used to return progress information during the load</param>
+        /// <param name="Ips">Any number of IP addresses</param>
+        /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
+        public abstract IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips);
     }
 }

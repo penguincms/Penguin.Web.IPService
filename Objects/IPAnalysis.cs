@@ -39,7 +39,15 @@ namespace Penguin.Web.Objects
         /// </summary>
         /// <param name="IPAddress">The IP to check</param>
         /// <returns>If the IP is represented by this analysis</returns>
-        public bool IsMatch(System.Net.IPAddress IPAddress) => IsMatch(IPRegistration.IpToInt(IPAddress));
+        public bool IsMatch(System.Net.IPAddress IPAddress)
+        {
+            if (IPAddress is null)
+            {
+                throw new ArgumentNullException(nameof(IPAddress));
+            }
+
+            return IsMatch(IPRegistration.IpToInt(IPAddress));
+        }
 
         /// <summary>
         /// Checks if the given IP is described by this analysis
