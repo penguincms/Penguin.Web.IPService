@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageProjectUrl>https://github.com/penguincms/Penguin.Web.IPService</PackageProjectUrl>
-    <Version>5.0.0</Version>
+    <Version>5.0.1</Version>
     <Description>Module for managing access based on various aspects of IP address. Allows for loading Arin data and blocking based on organization</Description>
     <AssemblyName>Penguin.Web.IPService</AssemblyName>
     <RootNamespace>Penguin.Web.IPService</RootNamespace>

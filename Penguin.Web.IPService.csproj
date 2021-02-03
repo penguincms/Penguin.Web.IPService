@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageProjectUrl>https://github.com/penguincms/Penguin.Web.IPService</PackageProjectUrl>
-    <Version>5.0.0</Version>
+    <Version>5.0.1</Version>
     <Description>Module for managing access based on various aspects of IP address. Allows for loading Arin data and blocking based on organization</Description>
     <AssemblyName>Penguin.Web.IPService</AssemblyName>
     <RootNamespace>Penguin.Web.IPService</RootNamespace>
@@ -10,9 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-    <PackageReference Include="Penguin.Console" Version="5.0.1-TA99DVY" />
-    <PackageReference Include="Penguin.Extensions.String" Version="5.0.1-TA99DVY" />
-    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.0.1-TA99DVY" />
+    <PackageReference Include="Penguin.Console" Version="5.0.2-TA9KKLU" />
+    <PackageReference Include="Penguin.Extensions.String" Version="5.0.2-TA9KKLU" />
+    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.0.2-TA9VVW9" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Whois\whosip.exe">
