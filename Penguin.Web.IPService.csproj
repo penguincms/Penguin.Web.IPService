@@ -12,7 +12,7 @@
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
     <PackageReference Include="Penguin.Console" Version="5.0.2-TA9KKLU" />
     <PackageReference Include="Penguin.Extensions.String" Version="5.0.2-TA9KKLU" />
-    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.0.2-TA9VVW9" />
+    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.0.2-TAA4YFP" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Whois\whosip.exe">
