@@ -120,6 +120,11 @@ namespace Penguin.Web.IPServices
         /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
         public override IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips)
         {
+            if (Ips is null)
+            {
+                throw new ArgumentNullException(nameof(Ips));
+            }
+
             HashSet<BigInteger> toFind = new HashSet<BigInteger>();
             Dictionary<BigInteger, string> Mapping = new Dictionary<BigInteger, string>();
 
