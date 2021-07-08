@@ -10,7 +10,7 @@ namespace Penguin.Web.IPServices.Objects
     {
         internal LoadCompletionArgs()
         {
-            Analysis = new ConcurrentBag<IPAnalysis>();
+            this.Analysis = new ConcurrentBag<IPAnalysis>();
         }
 
         /// <summary>

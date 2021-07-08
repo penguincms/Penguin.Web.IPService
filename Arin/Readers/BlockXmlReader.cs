@@ -1,7 +1,6 @@
 ﻿using Penguin.Reflection.Serialization.XML;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Penguin.Web.IPServices.Arin.Readers
@@ -13,40 +12,41 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
         public BlockXmlReader(string blockName, string filePath, int bufferSize = 128, IProgress<float> reportProgress = null) : base(filePath, bufferSize, reportProgress)
         {
-            Serializer = new XMLSerializer(new XMLDeserializerOptions()
+            this.Serializer = new XMLSerializer(new XMLDeserializerOptions()
             {
                 CaseSensitive = false,
                 AttributesAsProperties = true,
                 StartNode = blockName
             });
 
-            TextReader.ReadLine();
-            TextReader.ReadLine();
+            _ = this.TextReader.ReadLine();
+            _ = this.TextReader.ReadLine();
         }
 
-        private object lockObject = new object();
+        private readonly object lockObject = new object();
 
         public T GetNextBlock()
         {
             T block = null;
-            lock (lockObject)
+            lock (this.lockObject)
             {
-                if (StreamEnd)
+                if (this.StreamEnd)
                 {
                     return null;
-                };
+                }
 
-                block = Serializer.DeserializeObject<T>(TextReader);
-                ReportProgress();
+                block = this.Serializer.DeserializeObject<T>(this.TextReader);
+                this.ReportProgress();
             }
+
             return block;
         }
 
         //int i = 0;
         public IEnumerable<T> Blocks()
         {
-            T block = null;
-            while ((block = GetNextBlock()) != null)
+            T block;
+            while ((block = this.GetNextBlock()) != null)
             {
                 //Debug.WriteLine(i++);
                 yield return block;

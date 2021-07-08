@@ -14,7 +14,7 @@ namespace Penguin.Web.Registrations
 
         public CIDRRegistration(string CIDR)
         {
-            Source = CIDR;
+            this.Source = CIDR;
 
             if (string.IsNullOrEmpty(CIDR))
             {
@@ -23,7 +23,7 @@ namespace Penguin.Web.Registrations
 
             string[] parts = CIDR.Split('/');
 
-            CidrAddress = ParseIp(parts[0]);
+            this.CidrAddress = ParseIp(parts[0]);
 
             if (parts.Length != 2)
             {
@@ -40,14 +40,14 @@ namespace Penguin.Web.Registrations
                 throw new ArgumentOutOfRangeException($"Netmask bit count value of {netmaskBitCount} is invalid, must be in range 0-32");
             }
 
-            CidrAddressBytes = IpToInt(CidrAddress);
+            this.CidrAddressBytes = IpToInt(this.CidrAddress);
 
-            CidrMaskBytes = IPAddress.HostToNetworkOrder(-1 << (32 - netmaskBitCount));
+            this.CidrMaskBytes = IPAddress.HostToNetworkOrder(-1 << (32 - netmaskBitCount));
         }
 
         public override bool IsMatch(BigInteger IPAddress)
         {
-            return (IPAddress & CidrMaskBytes) == (CidrAddressBytes & CidrMaskBytes);
+            return (IPAddress & this.CidrMaskBytes) == (this.CidrAddressBytes & this.CidrMaskBytes);
         }
     }
 }

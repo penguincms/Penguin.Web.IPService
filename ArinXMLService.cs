@@ -25,8 +25,8 @@ namespace Penguin.Web.IPServices
 
             public FindOwnerContainer(string ip, Net block)
             {
-                IP = ip;
-                Block = block;
+                this.IP = ip;
+                this.Block = block;
             }
         }
 
@@ -55,19 +55,16 @@ namespace Penguin.Web.IPServices
                 BigInteger val = IPRegistration.IpToInt(ip);
                 if (!Mapping.ContainsKey(val))
                 {
-                    toFind.Add(val);
+                    _ = toFind.Add(val);
                     Mapping.Add(val, ip);
                 }
             }
 
-            NetXmlReader readerX = new NetXmlReader(NetPath, new Progress<float>((f) =>
-            {
-                ReportProgress.Report(("XML: NET", f));
-            }));
+            NetXmlReader readerX = new NetXmlReader(this.NetPath, new Progress<float>((f) => ReportProgress.Report(("XML: NET", f))));
 
             ConcurrentBag<FindOwnerContainer> matchBlocks = new ConcurrentBag<FindOwnerContainer>();
 
-            Parallel.ForEach<Net>(readerX.Blocks(),
+            _ = Parallel.ForEach<Net>(readerX.Blocks(),
             block =>
             {
                 foreach (IPAnalysis ipa in GetAnalysis(block))
@@ -82,18 +79,14 @@ namespace Penguin.Web.IPServices
                 }
             });
 
-            OrgXmlReader readerO = new OrgXmlReader(OrgPath, new Progress<float>((f) =>
-            {
-                ReportProgress.Report(("XML: ORG", f));
-            }));
+            OrgXmlReader readerO = new OrgXmlReader(this.OrgPath, new Progress<float>((f) => ReportProgress.Report(("XML: ORG", f))));
 
             Dictionary<string, List<FindOwnerContainer>> matchLookup = new Dictionary<string, List<FindOwnerContainer>>();
 
             foreach (FindOwnerContainer lookup in matchBlocks)
             {
                 string org = lookup.Block.OrgHandle;
-                List<FindOwnerContainer> collection;
-                if (matchLookup.TryGetValue(org, out collection))
+                if (matchLookup.TryGetValue(org, out List<FindOwnerContainer> collection))
                 {
                     collection.Add(lookup);
                 }
@@ -108,16 +101,16 @@ namespace Penguin.Web.IPServices
 
             ConcurrentBag<(string OrgName, string IP)> toReturn = new ConcurrentBag<(string OrgName, string IP)>();
 
-            Parallel.ForEach(readerO.Blocks(), block =>
-            {
-                if (matchLookup.TryGetValue(block.Handle, out List<FindOwnerContainer> collection))
-                {
-                    foreach (FindOwnerContainer container in collection)
-                    {
-                        toReturn.Add((container.IP, block.Name));
-                    }
-                }
-            });
+            _ = Parallel.ForEach(readerO.Blocks(), block =>
+              {
+                  if (matchLookup.TryGetValue(block.Handle, out List<FindOwnerContainer> collection))
+                  {
+                      foreach (FindOwnerContainer container in collection)
+                      {
+                          toReturn.Add((container.IP, block.Name));
+                      }
+                  }
+              });
 
             return toReturn;
         }
@@ -129,26 +122,19 @@ namespace Penguin.Web.IPServices
         /// <param name="BlackLists">A list of blacklist entries describing what to block</param>
         /// <param name="reportProgress">A method used to return progress information during the load</param>
         /// <returns>A task that will complete when the blacklist has fully loaded</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "<Pending>")]
         public async Task<LoadCompletionArgs> LoadBlacklist(IEnumerable<ArinBlacklist> BlackLists, IProgress<(string, float)> reportProgress = null)
         {
             List<ArinBlacklist> BlackList = BlackLists.ToList();
 
             return await Task.Run(() =>
             {
-                NetXmlReader netReader = new NetXmlReader(NetPath);
+                NetXmlReader netReader = new NetXmlReader(this.NetPath);
 
                 PropertyInfo[] netProps = typeof(Net).GetProperties().Where(p => BlackList.SelectMany(a => a.Properties).Contains(p.Name)).ToArray();
 
-                List<Org> matchingOrgs = MatchingOrgs(BlackList, OrgPath, new Progress<(string, float)>((t) =>
-                {
-                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
-                }));
+                List<Org> matchingOrgs = MatchingOrgs(BlackList, this.OrgPath, new Progress<(string, float)>((t) => reportProgress?.Report(("XML: " + t.Item1, t.Item2))));
 
-                List<Net> matchingNets = MatchingNets(BlackList, matchingOrgs, NetPath, new Progress<(string, float)>((t) =>
-                {
-                    reportProgress?.Report(("XML: " + t.Item1, t.Item2));
-                }));
+                List<Net> matchingNets = MatchingNets(BlackList, matchingOrgs, this.NetPath, new Progress<(string, float)>((t) => reportProgress?.Report(("XML: " + t.Item1, t.Item2))));
 
                 LoadCompletionArgs toReturn = new LoadCompletionArgs();
 
@@ -172,7 +158,7 @@ namespace Penguin.Web.IPServices
         /// </summary>
         /// <param name="n">The NET object to convert</param>
         /// <returns>A list of IPAnalysis representing the ranges specified in the NET</returns>
-        protected List<IPAnalysis> GetAnalysis(Net n)
+        protected static List<IPAnalysis> GetAnalysis(Net n)
         {
             if (n is null)
             {
@@ -204,6 +190,7 @@ namespace Penguin.Web.IPServices
                     OrgID = n.OrgHandle
                 });
             }
+
             return toReturn;
         }
 
@@ -213,65 +200,57 @@ namespace Penguin.Web.IPServices
             List<ArinBlacklist> entriesToCheck = BlackListEntries.Where(b => props.Any(p => b.Properties.Contains(p.Name))).ToList();
             ConcurrentBag<T> toReturn = new ConcurrentBag<T>();
 
-            Parallel.ForEach(Next, block =>
-            {
-                if (AdditionalCriteria?.Invoke(block) ?? false)
-                {
-                    toReturn.Add(block);
-                }
-                {
-                    foreach (ArinBlacklist thisBlacklistEntry in entriesToCheck)
-                    {
-                        foreach (PropertyInfo thisProperty in props)
-                        {
-                            foreach (string property in thisBlacklistEntry.Properties)
-                            {
-                                if (thisProperty.Name != property)
-                                {
-                                    continue;
-                                }
-                                else
-                                {
-                                    if (CheckProperty(thisProperty.GetValue(block)?.ToString(), thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
-                                    {
-                                        toReturn.Add(block);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            _ = Parallel.ForEach(Next, block =>
+              {
+                  if (AdditionalCriteria?.Invoke(block) ?? false)
+                  {
+                      toReturn.Add(block);
+                  }
+
+                  
+                      foreach (ArinBlacklist thisBlacklistEntry in entriesToCheck)
+                      {
+                          foreach (PropertyInfo thisProperty in props)
+                          {
+                              foreach (string property in thisBlacklistEntry.Properties)
+                              {
+                                  if (thisProperty.Name != property)
+                                  {
+                                      continue;
+                                  }
+                                  else
+                                  {
+                                      if (CheckProperty(thisProperty.GetValue(block)?.ToString(), thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
+                                      {
+                                          toReturn.Add(block);
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  
+              });
 
             return toReturn;
         }
 
         private static List<Net> MatchingNets(List<ArinBlacklist> BlackListEntries, List<Org> MatchingOrgs, string NetXmlPath, IProgress<(string, float)> ReportProgress)
         {
-            NetXmlReader reader = new NetXmlReader(NetXmlPath, new Progress<float>((f) =>
-            {
-                ReportProgress.Report(("Net", f));
-            }));
+            NetXmlReader reader = new NetXmlReader(NetXmlPath, new Progress<float>((f) => ReportProgress.Report(("Net", f))));
 
             HashSet<string> orgMatch = new HashSet<string>();
 
             foreach (string name in MatchingOrgs.Select(m => m.Handle))
             {
-                orgMatch.Add(name);
+                _ = orgMatch.Add(name);
             }
 
-            return FindMatches(reader.Blocks(), BlackListEntries, n =>
-            {
-                return orgMatch.Contains(n.OrgHandle);
-            }).ToList();
+            return FindMatches(reader.Blocks(), BlackListEntries, n => orgMatch.Contains(n.OrgHandle)).ToList();
         }
 
         private static List<Org> MatchingOrgs(List<ArinBlacklist> BlackListEntries, string OrgXmlPath, IProgress<(string, float)> ReportProgress)
         {
-            OrgXmlReader reader = new OrgXmlReader(OrgXmlPath, new Progress<float>((f) =>
-            {
-                ReportProgress.Report(("ORG", f));
-            }));
+            OrgXmlReader reader = new OrgXmlReader(OrgXmlPath, new Progress<float>((f) => ReportProgress.Report(("ORG", f))));
 
             return FindMatches(reader.Blocks(), BlackListEntries).ToList();
         }

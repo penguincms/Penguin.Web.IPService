@@ -15,7 +15,6 @@ namespace Penguin.Web.IPServices
         private ArinTXTService TxtService { get; set; }
         private ArinXMLService XmlService { get; set; }
 
-
         public void LoadBlacklist(Blacklist blacklist)
         {
             this.BlackList = blacklist;
@@ -36,7 +35,7 @@ namespace Penguin.Web.IPServices
 
             loads[0] = Task.Run(async () =>
                 {
-                    LoadCompletionArgs Result = await TxtService.LoadBlacklist(BlackLists, reportProgress);
+                    LoadCompletionArgs Result = await this.TxtService.LoadBlacklist(BlackLists, reportProgress);
 
                     foreach (IPAnalysis ip in Result.Analysis)
                     {
@@ -47,7 +46,7 @@ namespace Penguin.Web.IPServices
 
             loads[1] = Task.Run(async () =>
             {
-                LoadCompletionArgs Result = await XmlService.LoadBlacklist(BlackLists, reportProgress);
+                LoadCompletionArgs Result = await this.XmlService.LoadBlacklist(BlackLists, reportProgress);
 
                 foreach (IPAnalysis ip in Result.Analysis)
                 {
@@ -68,12 +67,12 @@ namespace Penguin.Web.IPServices
         /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
         public override IEnumerable<(string OrgName, string IP)> FindOwner(IProgress<(string, float)> ReportProgress, params string[] Ips)
         {
-            foreach ((string OrgName, string Ip) in XmlService.FindOwner(ReportProgress, Ips))
+            foreach ((string OrgName, string Ip) in this.XmlService.FindOwner(ReportProgress, Ips))
             {
                 yield return (OrgName, Ip);
             }
 
-            foreach ((string OrgName, string Ip) in TxtService.FindOwner(ReportProgress, Ips))
+            foreach ((string OrgName, string Ip) in this.TxtService.FindOwner(ReportProgress, Ips))
             {
                 yield return (OrgName, Ip);
             }
@@ -88,8 +87,8 @@ namespace Penguin.Web.IPServices
         /// <param name="OrgXmlPath">The path of the ARIN ORG .xml dump</param>
         public ArinService(string NetTxtPath, string OrgTxtPath, string NetXmlPath, string OrgXmlPath) : base(null, null)
         {
-            TxtService = new ArinTXTService(NetTxtPath, OrgTxtPath);
-            XmlService = new ArinXMLService(NetXmlPath, OrgXmlPath);
+            this.TxtService = new ArinTXTService(NetTxtPath, OrgTxtPath);
+            this.XmlService = new ArinXMLService(NetXmlPath, OrgXmlPath);
         }
 
         /// <summary>

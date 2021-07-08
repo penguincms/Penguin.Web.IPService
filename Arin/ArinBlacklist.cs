@@ -14,20 +14,12 @@ namespace Penguin.Web.IPServices.Arin
         /// </summary>
         public string Property
         {
-            set
-            {
-                if (!Properties.Any())
-                {
-                    Properties = new List<string>()
+            set => this.Properties = !this.Properties.Any()
+                    ? new List<string>()
                     {
                         value
-                    };
-                }
-                else
-                {
-                    throw new Exception("Can not set individual property more than once, or after a property list has been set");
-                }
-            }
+                    }
+                    : throw new Exception("Can not set individual property more than once, or after a property list has been set");
         }
 
         /// <summary>

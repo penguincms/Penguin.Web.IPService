@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageProjectUrl>https://github.com/penguincms/Penguin.Web.IPService</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/PenguinCMS/Penguin.Web.IPService</PackageProjectUrl>
     <Version>5.0.5</Version>
     <Description>Module for managing access based on various aspects of IP address. Allows for loading Arin data and blocking based on organization</Description>
     <AssemblyName>Penguin.Web.IPService</AssemblyName>

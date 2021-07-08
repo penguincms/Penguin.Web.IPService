@@ -14,7 +14,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
         public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress = null)
         {
-            ProgressReporter = reportProgress;
+            this.ProgressReporter = reportProgress;
 
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -28,26 +28,27 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
             StreamReader fileStream = new StreamReader(File.OpenRead(filePath), Encoding.UTF8, true, bufferSize);
 
-            TextReader = fileStream;
-            FileLength = fileStream.BaseStream.Length;
+            this.TextReader = fileStream;
+            this.FileLength = fileStream.BaseStream.Length;
         }
 
         public void ReportProgress()
         {
-            if (ProgressReporter != null)
+            if (this.ProgressReporter != null)
             {
-                float thisProgress = (float)(Math.Truncate((TextReader as StreamReader).BaseStream.Position / FileLength * 100.0));
+                float thisProgress = (float)(Math.Truncate((this.TextReader as StreamReader).BaseStream.Position / this.FileLength * 100.0));
 
-                if (LastProgress != thisProgress)
+                if (this.LastProgress != thisProgress)
                 {
                     //This is a dumb way to set this but this calculation is expensive
                     if (thisProgress == 100f)
                     {
-                        StreamEnd = true;
+                        this.StreamEnd = true;
                     }
-                    LastProgress = thisProgress;
 
-                    ProgressReporter.Report(thisProgress);
+                    this.LastProgress = thisProgress;
+
+                    this.ProgressReporter.Report(thisProgress);
                 }
             }
         }
@@ -58,17 +59,17 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!this.disposedValue)
             {
                 if (disposing)
                 {
-                    TextReader.Dispose();
+                    this.TextReader.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
 
-                disposedValue = true;
+                this.disposedValue = true;
             }
         }
 
@@ -83,7 +84,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
         void IDisposable.Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
+            this.Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }

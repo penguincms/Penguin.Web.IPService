@@ -15,14 +15,14 @@ namespace Penguin.Web.Objects
         /// <param name="ipRange">The range given as a string "from-to"</param>
         public IPRange(string ipRange)
         {
-            if (ipRange == null)
+            if (string.IsNullOrWhiteSpace(ipRange))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentException($"'{nameof(ipRange)}' cannot be null or whitespace.", nameof(ipRange));
             }
 
             if (!this.TryParseCIDRNotation(ipRange) && !this.TryParseSimpleRange(ipRange))
             {
-                throw new ArgumentException();
+                throw new ArgumentException($"'{nameof(ipRange)}' cannot be parsed.", nameof(ipRange));
             }
         }
 
@@ -75,7 +75,7 @@ namespace Penguin.Web.Objects
             string[] ipParts0 = x[0].Split('.');
             for (int i = 0; i < 4; i++)
             {
-                ip = ip << 8;
+                ip <<= 8;
                 ip += uint.Parse(ipParts0[i]);
             }
 

@@ -32,8 +32,8 @@ namespace Penguin.Web.IPServices
 
         internal ArinBaseService(string orgPath, string netPath)
         {
-            OrgPath = orgPath;
-            NetPath = netPath;
+            this.OrgPath = orgPath;
+            this.NetPath = netPath;
         }
 
         /// <summary>
@@ -57,6 +57,7 @@ namespace Penguin.Web.IPServices
                     {
                         return true;
                     }
+
                     break;
 
                 case MatchMethod.Contains:
@@ -64,6 +65,7 @@ namespace Penguin.Web.IPServices
                     {
                         return true;
                     }
+
                     break;
 
                 case MatchMethod.Exact:
@@ -71,6 +73,7 @@ namespace Penguin.Web.IPServices
                     {
                         return true;
                     }
+
                     break;
 
                 case MatchMethod.CaseInsensitiveContains:
@@ -78,10 +81,11 @@ namespace Penguin.Web.IPServices
                     {
                         return true;
                     }
+
                     break;
 
                 default:
-                    throw new NotImplementedException($"{nameof(MatchMethod)} value {method.ToString()} is not implemented");
+                    throw new NotImplementedException($"{nameof(MatchMethod)} value {method} is not implemented");
             }
 
             return false;
@@ -92,7 +96,10 @@ namespace Penguin.Web.IPServices
         /// </summary>
         /// <param name="address">The IP to check</param>
         /// <returns>An object representing the blacklist status and any applicable matches</returns>
-        public BlacklistStatus CheckIP(string address) => CheckIP(IPRegistration.ParseIp(address));
+        public BlacklistStatus CheckIP(string address)
+        {
+            return this.CheckIP(IPRegistration.ParseIp(address));
+        }
 
         /// <summary>
         /// Checks the given IP against the black list
@@ -110,7 +117,7 @@ namespace Penguin.Web.IPServices
 
             BlacklistStatus toReturn = new BlacklistStatus();
 
-            if (!(BlackList?.IsLoaded ?? false))
+            if (!(this.BlackList?.IsLoaded ?? false))
             {
                 toReturn.State = BlacklistState.NotLoaded;
             }
@@ -136,7 +143,10 @@ namespace Penguin.Web.IPServices
         /// </summary>
         /// <param name="Ips">Any number of IP addresses</param>
         /// <returns>An IEnumerable containing tuples with the organization name and IP tied to it</returns>
-        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips) => this.FindOwner(null, Ips);
+        public IEnumerable<(string OrgName, string IP)> FindOwner(params string[] Ips)
+        {
+            return this.FindOwner(null, Ips);
+        }
 
         /// <summary>
         /// Returns the company that the given IP address is registered to. This is blocking so it shouldn't be used for large lists if time is critical

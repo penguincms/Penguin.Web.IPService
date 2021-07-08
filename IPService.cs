@@ -1,4 +1,5 @@
 ﻿using Penguin.Extensions.Strings;
+using Penguin.PgConsole;
 using Penguin.Web.Objects;
 using Penguin.Web.Registrations;
 using System;
@@ -93,7 +94,7 @@ namespace Penguin.Web
 
         public const double QueryTimeout = 2000;
         private static DateTime LastQuery { get; set; }
-        private static Object QueryLock { get; set; } = new object();
+        private static object QueryLock { get; set; } = new object();
 
         public static IPAnalysis QueryIP(IPAddress Ip)
         {
@@ -124,7 +125,7 @@ namespace Penguin.Web
                         System.Threading.Thread.Sleep((int)(QueryTimeout - (DateTime.Now - LastQuery).TotalMilliseconds));
                     }
 
-                    string Response = Penguin.Console.ProcessHelper.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip.ToString()).ToString();
+                    string Response = ProcessHelper.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip.ToString()).ToString();
 
                     string[] lines = Response.Split('\r').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToArray();
 
@@ -223,7 +224,7 @@ namespace Penguin.Web
                 }
             }
 
-            IPAnalysis analyzeIP = QueryIP(Ip);
+            _ = QueryIP(Ip);
 
             return false;
         }

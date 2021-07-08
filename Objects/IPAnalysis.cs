@@ -41,12 +41,7 @@ namespace Penguin.Web.Objects
         /// <returns>If the IP is represented by this analysis</returns>
         public bool IsMatch(System.Net.IPAddress IPAddress)
         {
-            if (IPAddress is null)
-            {
-                throw new ArgumentNullException(nameof(IPAddress));
-            }
-
-            return IsMatch(IPRegistration.IpToInt(IPAddress));
+            return IPAddress is null ? throw new ArgumentNullException(nameof(IPAddress)) : this.IsMatch(IPRegistration.IpToInt(IPAddress));
         }
 
         /// <summary>
@@ -56,30 +51,33 @@ namespace Penguin.Web.Objects
         /// <returns>If the IP is represented by this analysis</returns>
         public bool IsMatch(BigInteger IPAddress)
         {
-            if (Registrations is null)
+            if (this.Registrations is null)
             {
-                Registrations = new List<IIPRegistration>();
+                this.Registrations = new List<IIPRegistration>();
 
-                if (CIDR != null)
+                if (this.CIDR != null)
                 {
-                    foreach (string cidr in CIDR)
+                    foreach (string cidr in this.CIDR)
                     {
                         if (!string.IsNullOrWhiteSpace(cidr))
                         {
-                            Registrations.Add(new CIDRRegistration(cidr));
+                            this.Registrations.Add(new CIDRRegistration(cidr));
                         }
                     }
                 }
 
-                if (!string.IsNullOrWhiteSpace(FromIp) && !string.IsNullOrWhiteSpace(ToIp))
+                if (!string.IsNullOrWhiteSpace(this.FromIp) && !string.IsNullOrWhiteSpace(this.ToIp))
                 {
-                    Registrations.Add(new RangeRegistration($"{FromIp}-{ToIp}"));
+                    this.Registrations.Add(new RangeRegistration($"{this.FromIp}-{this.ToIp}"));
                 }
             }
 
-            foreach (IIPRegistration registration in Registrations)
+            foreach (IIPRegistration registration in this.Registrations)
             {
-                if (registration.IsMatch(IPAddress)) { return true; }
+                if (registration.IsMatch(IPAddress))
+                { 
+                    return true; 
+                }
             }
 
             return false;

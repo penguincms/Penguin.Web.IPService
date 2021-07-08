@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Penguin.Web.IPServices.Arin.Readers
 {
@@ -20,19 +19,19 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
             string line;
 
-            lock (lockObject)
+            lock (this.lockObject)
             {
-                while ((line = TextReader.ReadLine()) != null)
+                while ((line = this.TextReader.ReadLine()) != null)
                 {
                     if (string.IsNullOrWhiteSpace(line))
                     {
-                        newLineCount++;
+                        this.newLineCount++;
 
-                        if (newLineCount == 3)
+                        if (this.newLineCount == 3)
                         {
                             if (Lines.Count > 0)
                             {
-                                ReportProgress();
+                                this.ReportProgress();
                                 return Lines;
                             }
                         }
@@ -41,7 +40,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
                     }
                     else
                     {
-                        newLineCount = 0;
+                        this.newLineCount = 0;
                     }
 
                     Lines.Add(line);
@@ -53,7 +52,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
 
         private Dictionary<string, string> DeserializeNextBlock()
         {
-            List<string> Lines = ReadNextText();
+            List<string> Lines = this.ReadNextText();
 
             if (Lines is null)
             {
@@ -79,14 +78,14 @@ namespace Penguin.Web.IPServices.Arin.Readers
             return thisBlock;
         }
 
-        private object lockObject = new object();
+        private readonly object lockObject = new object();
 
         public IEnumerable<Dictionary<string, string>> Blocks()
         {
             Dictionary<string, string> block;
-            while ((block = DeserializeNextBlock()) != null)
+            while ((block = this.DeserializeNextBlock()) != null)
             {
-                ReportProgress();
+                this.ReportProgress();
                 yield return block;
             }
         }

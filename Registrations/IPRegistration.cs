@@ -17,6 +17,7 @@ namespace Penguin.Web.Registrations
             {
                 start = start.Replace(".0", ".");
             }
+
             if (start.StartsWith("."))
             {
                 start = "0" + start;
@@ -29,12 +30,12 @@ namespace Penguin.Web.Registrations
 
             if (start.EndsWith("."))
             {
-                start = start + "0";
+                start += "0";
             }
 
             if (start.EndsWith(":"))
             {
-                start = start + "0000";
+                start += "0000";
             }
 
             while (start.Contains(".."))
@@ -50,7 +51,10 @@ namespace Penguin.Web.Registrations
             return IPAddress.Parse(CleanIP(Ip));
         }
 
-        public static BigInteger IpToInt(string address) => IpToInt(ParseIp(address));
+        public static BigInteger IpToInt(string address)
+        {
+            return IpToInt(ParseIp(address));
+        }
 
         public static BigInteger IpToInt(IPAddress address)
         {

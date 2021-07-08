@@ -6,12 +6,12 @@ namespace Penguin.Web.Registrations
     {
         public SingleIPRegistration(string IP)
         {
-            Source = IP;
+            this.Source = IP;
         }
 
         public override bool IsMatch(BigInteger IPAddress)
         {
-            return IpToInt(ParseIp(Source)).Equals(IPAddress);
+            return IpToInt(ParseIp(this.Source)).Equals(IPAddress);
         }
     }
 }

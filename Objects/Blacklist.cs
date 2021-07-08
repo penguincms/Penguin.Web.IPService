@@ -1,7 +1,6 @@
 ﻿using Penguin.Web.Objects;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Penguin.Web.IPServices.Objects
 {
@@ -17,14 +16,8 @@ namespace Penguin.Web.IPServices.Objects
 
         public ConcurrentBagWrapper<IPAnalysis> Analysis
         {
-            get
-            {
-                return new ConcurrentBagWrapper<IPAnalysis>(_Analysis);
-            }
-            internal set
-            {
-                _Analysis = value.Backing;
-            }
+            get => new ConcurrentBagWrapper<IPAnalysis>(this._Analysis);
+            internal set => this._Analysis = value.Backing;
         }
 
         /// <summary>
@@ -34,7 +27,7 @@ namespace Penguin.Web.IPServices.Objects
 
         public void Add(IPAnalysis analysis)
         {
-            _Analysis.Add(analysis);
+            this._Analysis.Add(analysis);
         }
 
         public void AddRange(IEnumerable<IPAnalysis> analyses)
@@ -46,7 +39,7 @@ namespace Penguin.Web.IPServices.Objects
 
             foreach (IPAnalysis analysis in analyses)
             {
-                Add(analysis);
+                this.Add(analysis);
             }
         }
     }
