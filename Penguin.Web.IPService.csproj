@@ -10,9 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-    <PackageReference Include="Penguin.Console" Version="5.0.6-TAHULSY" />
-    <PackageReference Include="Penguin.Extensions.String" Version="5.0.6-TAHULSY" />
-    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.0.6-TAHULSY" />
+    <PackageReference Include="Penguin.Console" Version="5.0.6-TATDFB4" />
+    <PackageReference Include="Penguin.Extensions.String" Version="5.0.6-TATDFB4" />
+    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.0.6-TATDFB4" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Whois\whosip.exe">
