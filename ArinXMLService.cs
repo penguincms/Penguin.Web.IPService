@@ -1,4 +1,4 @@
-﻿using Penguin.Web.IPServices.Arin;
+using Penguin.Web.IPServices.Arin;
 using Penguin.Web.IPServices.Arin.Readers;
 using Penguin.Web.IPServices.Objects;
 using Penguin.Web.Objects;
@@ -207,7 +207,6 @@ namespace Penguin.Web.IPServices
                       toReturn.Add(block);
                   }
 
-                  
                       foreach (ArinBlacklist thisBlacklistEntry in entriesToCheck)
                       {
                           foreach (PropertyInfo thisProperty in props)
