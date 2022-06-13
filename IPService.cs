@@ -1,4 +1,4 @@
-﻿using Penguin.Extensions.Strings;
+﻿using Penguin.Extensions.String;
 using Penguin.PgConsole;
 using Penguin.Web.Objects;
 using Penguin.Web.Registrations;
@@ -10,7 +10,7 @@ using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Penguin.Web
+namespace Penguin.Web.IPService
 {
     internal static class IPService
     {
