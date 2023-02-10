@@ -5,7 +5,9 @@
     public struct PocLink
     {
         public string Description { get; set; }
+
         public string Function { get; set; }
+
         public string Handle { get; set; }
     }
 

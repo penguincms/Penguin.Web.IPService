@@ -12,22 +12,39 @@ namespace Penguin.Web.Objects
     public struct IPAnalysis : IIPRegistration
     {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
         public DateTime DiscoveryDate { get; set; }
+
         public string IpAddress { get; set; }
+
         public string Country { get; set; }
+
         public string NetworkName { get; set; }
+
         public string OwnerName { get; set; }
+
         public string[] CIDR { get; set; }
+
         public string FromIp { get; set; }
+
         public string ToIp { get; set; }
+
         public bool Allocated { get; set; }
+
         public string ContactName { get; set; }
+
         public string Address { get; set; }
+
         public string Email { get; set; }
+
         public string AbuseEmail { get; set; }
+
         public string Phone { get; set; }
+
         public string Fax { get; set; }
+
         public string WhoisSource { get; set; }
+
         public string OrgID { get; set; }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 

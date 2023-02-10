@@ -21,6 +21,7 @@ namespace Penguin.Web.IPServices
         private struct FindOwnerContainer
         {
             public Net Block { get; set; }
+
             public string IP { get; set; }
 
             public FindOwnerContainer(string ip, Net block)

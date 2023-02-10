@@ -8,6 +8,7 @@ namespace Penguin.Web.IPServices.Arin.Readers
     internal class BlockXmlReader<T> : BlockReader<T> where T : class
     {
         private XMLSerializer Serializer { get; set; }
+
         public Task<T> NextBlock { get; set; }
 
         public BlockXmlReader(string blockName, string filePath, int bufferSize = 128, IProgress<float> reportProgress = null) : base(filePath, bufferSize, reportProgress)

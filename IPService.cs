@@ -95,7 +95,9 @@ namespace Penguin.Web.IPService
         }
 
         public const double QueryTimeout = 2000;
+
         private static DateTime LastQuery { get; set; }
+
         private static object QueryLock { get; set; } = new object();
 
         public static IPAnalysis QueryIP(IPAddress Ip)

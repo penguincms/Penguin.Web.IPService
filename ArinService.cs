@@ -13,6 +13,7 @@ namespace Penguin.Web.IPServices
     public class ArinService : ArinBaseService
     {
         private ArinTXTService TxtService { get; set; }
+
         private ArinXMLService XmlService { get; set; }
 
         public void LoadBlacklist(Blacklist blacklist)

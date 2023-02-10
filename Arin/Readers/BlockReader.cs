@@ -7,9 +7,13 @@ namespace Penguin.Web.IPServices.Arin.Readers
     internal abstract class BlockReader<T> : IDisposable
     {
         protected TextReader TextReader { get; set; }
+
         protected IProgress<float> ProgressReporter { get; set; }
+
         private float LastProgress { get; set; }
+
         private float FileLength { get; set; }
+
         public bool StreamEnd { get; protected set; }
 
         public BlockReader(string filePath, int bufferSize = 128, IProgress<float> reportProgress = null)

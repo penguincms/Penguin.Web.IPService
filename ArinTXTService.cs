@@ -185,6 +185,7 @@ namespace Penguin.Web.IPServices
         private struct FindOwnerContainer
         {
             public string IP { get; set; }
+
             public Dictionary<string, string> Block { get; set; }
 
             public FindOwnerContainer(string ip, Dictionary<string, string> block)

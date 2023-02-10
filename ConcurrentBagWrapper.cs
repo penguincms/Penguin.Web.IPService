@@ -9,7 +9,9 @@ namespace Penguin.Web
     public class ConcurrentBagWrapper<T> : IList<T>
     {
         public ConcurrentBag<T> Backing { get; internal set; }
+
         public int Count => this.Backing.Count;
+
         public bool IsReadOnly => false;
 
         public T this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
