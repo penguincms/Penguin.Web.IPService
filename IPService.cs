@@ -26,6 +26,7 @@ namespace Penguin.Web.IPService
         public const string ANALYSIS_FILENAME = "IP.cache";
 
         //This is going to get really slow, really fast. This should be Async and incremental
+        [Obsolete]
         private static void SaveAnalysis()
         {
             IFormatter formatter = new BinaryFormatter();
@@ -52,6 +53,7 @@ namespace Penguin.Web.IPService
             }
         }
 
+        [Obsolete]
         private static void LoadAnalysis()
         {
             IFormatter formatter = new BinaryFormatter();
@@ -115,7 +117,7 @@ namespace Penguin.Web.IPService
 
                 if (analysis is null)
                 {
-                    IPAnalysis nanalysis = new IPAnalysis()
+                    IPAnalysis nanalysis = new()
                     {
                         DiscoveryDate = DateTime.Now
                     };
