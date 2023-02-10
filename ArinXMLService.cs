@@ -207,27 +207,26 @@ namespace Penguin.Web.IPServices
                       toReturn.Add(block);
                   }
 
-                      foreach (ArinBlacklist thisBlacklistEntry in entriesToCheck)
+                  foreach (ArinBlacklist thisBlacklistEntry in entriesToCheck)
+                  {
+                      foreach (PropertyInfo thisProperty in props)
                       {
-                          foreach (PropertyInfo thisProperty in props)
+                          foreach (string property in thisBlacklistEntry.Properties)
                           {
-                              foreach (string property in thisBlacklistEntry.Properties)
+                              if (thisProperty.Name != property)
                               {
-                                  if (thisProperty.Name != property)
+                                  continue;
+                              }
+                              else
+                              {
+                                  if (CheckProperty(thisProperty.GetValue(block)?.ToString(), thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
                                   {
-                                      continue;
-                                  }
-                                  else
-                                  {
-                                      if (CheckProperty(thisProperty.GetValue(block)?.ToString(), thisBlacklistEntry.Value, thisBlacklistEntry.MatchMethod))
-                                      {
-                                          toReturn.Add(block);
-                                      }
+                                      toReturn.Add(block);
                                   }
                               }
                           }
                       }
-                  
+                  }
               });
 
             return toReturn;

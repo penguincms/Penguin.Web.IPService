@@ -46,6 +46,7 @@ namespace Penguin.Web
                 _ = this.Backing.TryTake(out _);
             }
         }
+
         public bool Contains(T item)
         {
             return this.Backing.Any(c => c != null && c.Equals(item));
@@ -79,6 +80,7 @@ namespace Penguin.Web
 
             return toReturn;
         }
+
         public IEnumerator<T> GetEnumerator()
         {
             return this.Backing.GetEnumerator();

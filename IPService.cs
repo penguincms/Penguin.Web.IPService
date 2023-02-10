@@ -1,5 +1,5 @@
-﻿using Penguin.Extensions.String;
-using Penguin.PgConsole;
+﻿using Penguin.Console;
+using Penguin.Extensions.String;
 using Penguin.Web.Objects;
 using Penguin.Web.Registrations;
 using System;

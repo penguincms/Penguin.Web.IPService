@@ -75,8 +75,8 @@ namespace Penguin.Web.Objects
             foreach (IIPRegistration registration in this.Registrations)
             {
                 if (registration.IsMatch(IPAddress))
-                { 
-                    return true; 
+                {
+                    return true;
                 }
             }
 
