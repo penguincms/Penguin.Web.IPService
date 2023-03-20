@@ -1,5 +1,4 @@
-﻿using Penguin.Console;
-using Penguin.Extensions.String;
+﻿using Loxifi;
 using Penguin.Web.Objects;
 using Penguin.Web.Registrations;
 using System;
@@ -9,6 +8,9 @@ using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Penguin.Web.IPService
 {
@@ -100,11 +102,13 @@ namespace Penguin.Web.IPService
 
         private static object QueryLock { get; set; } = new object();
 
-        public static IPAnalysis QueryIP(IPAddress Ip)
+        public static async Task<IPAnalysis> QueryIP(IPAddress Ip)
         {
             IPAnalysis? analysis = null;
 
-            lock (QueryLock)
+            Monitor.Enter(QueryLock);
+
+            try
             {
                 TryLoadAnalysis();
 
@@ -129,7 +133,16 @@ namespace Penguin.Web.IPService
                         System.Threading.Thread.Sleep((int)(QueryTimeout - (DateTime.Now - LastQuery).TotalMilliseconds));
                     }
 
-                    string Response = ProcessHelper.Run(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"), Ip.ToString()).ToString();
+                    StringBuilder processResponse = new();
+
+                    _ = await ProcessRunner.StartAsync(new ProcessSettings(Path.Combine(Directory.GetCurrentDirectory(), "Whois", "whosip.exe"))
+                    {
+                        WorkingDirectory = Directory.GetCurrentDirectory(),
+                        Arguments = Ip.ToString(),
+                        StdOutWrite = (s, e) => processResponse.Append(s)
+                    });
+
+                    string Response = processResponse.ToString();
 
                     string[] lines = Response.Split('\r').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToArray();
 
@@ -210,9 +223,14 @@ namespace Penguin.Web.IPService
 
                     SaveAnalysis();
                 }
-            }
 
-            return analysis.Value;
+
+                return analysis.Value;
+            }
+            finally
+            {
+                Monitor.Exit(QueryLock);
+            }
         }
 
         public static bool IsBlacklisted(IPAddress Ip)
