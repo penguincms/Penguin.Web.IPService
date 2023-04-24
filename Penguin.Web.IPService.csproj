@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
-    <PackageProjectUrl>https://github.com/PenguinCms/Penguin.Web.IPService</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/PenguinCMS/Penguin.Web.IPService</PackageProjectUrl>
     <Version>5.0.5</Version>
     <Description>Module for managing access based on various aspects of IP address. Allows for loading Arin data and blocking based on organization</Description>
     <AssemblyName>Penguin.Web.IPService</AssemblyName>
@@ -13,7 +13,7 @@
     <PackageReference Include="Loxifi.ProcessRunner" Version="0.1.1" />
     <PackageReference Include="Loxifi.StringParsing" Version="0.1.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.4.0" />
+    <PackageReference Include="Penguin.Reflection.Serialization.XML" Version="5.7.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Whois\whosip.exe">
